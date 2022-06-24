@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -25,7 +26,7 @@ enum Expression{
 	EXP_COUNT
 };
 
-render::ghostiePose expresses[EXP_COUNT];
+Ghostie expresses[EXP_COUNT];
 
 sf::RenderWindow window;
 
@@ -35,6 +36,8 @@ void resizeContext(float width,float height){
 }
 
 int main(){
+	srand(time(NULL));
+	
 	// Window --------------------------------------------
 	sf::ContextSettings glSettings;
 	glSettings.antialiasingLevel = 4;
@@ -61,6 +64,7 @@ int main(){
 	sf::Event event;
 	
 	render::init(window,sf::Vector2u(1920,1080));
+	Ghostie::init();
 	resizeContext(windowWidth,windowHeight);
 	
 	sf::Clock clock;
@@ -69,61 +73,62 @@ int main(){
 	Expression lastExp = EXP_BLANK;
 	Expression currExp = EXP_BLANK;
 	
-	render::ghostiePose pose;
+	Ghostie pose;
 	
-	expresses[EXP_ANGRY].lup = 0.3;
-	expresses[EXP_ANGRY].lur = -30.0;
-	expresses[EXP_ANGRY].rup = 0.3;
-	expresses[EXP_ANGRY].rur = 30.0;
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_ROT,-30.0);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_ROT,30.0);
 	
-	expresses[EXP_WORRIED].lup = 0.3;
-	expresses[EXP_WORRIED].lur = 30.0;
-	expresses[EXP_WORRIED].rup = 0.3;
-	expresses[EXP_WORRIED].rur = -30.0;
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_POS,0.3);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_ROT,30.0);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_POS,0.3);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_ROT,-30.0);
 	
-	expresses[EXP_BORED].lup = 0.2;
-	expresses[EXP_BORED].rup = 0.2;
+	expresses[EXP_BORED].set(Ghostie::EYELID_LU_POS,0.2);
+	expresses[EXP_BORED].set(Ghostie::EYELID_RU_POS,0.2);
 	
-	expresses[EXP_CHEERFUL].ll = 0.2;
-	expresses[EXP_CHEERFUL].rl = 0.2;
+	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_LL_POS,0.2);
+	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_RL_POS,0.2);
+	
+	float faceDist,faceRot;
 	
 	while(window.isOpen() && run){
 		// Drawing ---------------------------------------
 		window.clear(sf::Color(0xff,0,0x0f,255));
+		render::view::clear();
 		
-		float pace = sin(clock.getElapsedTime().asSeconds());
-		pose.fd = ((float)sf::Mouse::getPosition(window).x / (float)window.getSize().x) * 2.0 - 1.0;
-		pose.fd = pose.fd < -1.0 ? -1.0 : (pose.fd > 1.0 ? 1.0 : pose.fd);
+		// float pace = sin(clock.getElapsedTime().asSeconds());
+		faceDist = ((float)sf::Mouse::getPosition(window).x / (float)window.getSize().x) * 2.0 - 1.0;
+		faceDist = faceDist < -1.0 ? -1.0 : (faceDist > 1.0 ? 1.0 : faceDist);
 		
-		pose.fr = ((float)sf::Mouse::getPosition(window).y / (float)window.getSize().y) * 2.0 - 1.0;
-		pose.fr = pose.fr < -1.0 ? -1.0 : (pose.fr > 1.0 ? 1.0 : pose.fr);
-		pose.fr *= 90.0;
+		faceRot = ((float)sf::Mouse::getPosition(window).y / (float)window.getSize().y) * 2.0 - 1.0;
+		faceRot = faceRot < -1.0 ? -1.0 : (faceRot > 1.0 ? 1.0 : faceRot);
+		faceRot *= 90.0;
 		
-		if(pose.fd > 0.0){
-			pose.fr *= -1.0;
+		if(faceDist > 0.0){
+			faceRot *= -1.0;
 		}
+		
+		pose.set(Ghostie::FACE_DIST,faceDist);
+		pose.set(Ghostie::FACE_ROT,faceRot);
 		
 		float delta = clock.getElapsedTime().asSeconds() - transfer.asSeconds();
 		
 		if(delta < 0.15){
-			pose.ll = expresses[lastExp].ll + ((expresses[currExp].ll - expresses[lastExp].ll) * (delta / 0.15));
-			pose.lup = expresses[lastExp].lup + ((expresses[currExp].lup - expresses[lastExp].lup) * (delta / 0.15));
-			pose.lur = expresses[lastExp].lur + ((expresses[currExp].lur - expresses[lastExp].lur) * (delta / 0.15));
+			pose.set(Ghostie::EYELID_LL_POS,expresses[lastExp].get(Ghostie::EYELID_LL_POS) + ((expresses[currExp].get(Ghostie::EYELID_LL_POS) - expresses[lastExp].get(Ghostie::EYELID_LL_POS)) * (delta / 0.15)));
+			pose.set(Ghostie::EYELID_LU_POS,expresses[lastExp].get(Ghostie::EYELID_LU_POS) + ((expresses[currExp].get(Ghostie::EYELID_LU_POS) - expresses[lastExp].get(Ghostie::EYELID_LU_POS)) * (delta / 0.15)));
+			pose.set(Ghostie::EYELID_LU_ROT,expresses[lastExp].get(Ghostie::EYELID_LU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_LU_ROT) - expresses[lastExp].get(Ghostie::EYELID_LU_ROT)) * (delta / 0.15)));
 			
-			pose.rl = expresses[lastExp].rl + ((expresses[currExp].rl - expresses[lastExp].rl) * (delta / 0.15));
-			pose.rup = expresses[lastExp].rup + ((expresses[currExp].rup - expresses[lastExp].rup) * (delta / 0.15));
-			pose.rur = expresses[lastExp].rur + ((expresses[currExp].rur - expresses[lastExp].rur) * (delta / 0.15));
-			
-			//render::ghostie(300,0,600,pose);
-			render::ghostie(0,0,500,pose,clock.getElapsedTime().asSeconds());
-			
-		}else{
-			//render::ghostie(300,0,600,pose);
-			render::ghostie(0,0,500,pose,clock.getElapsedTime().asSeconds());
-			
+			pose.set(Ghostie::EYELID_RL_POS,expresses[lastExp].get(Ghostie::EYELID_RL_POS) + ((expresses[currExp].get(Ghostie::EYELID_RL_POS) - expresses[lastExp].get(Ghostie::EYELID_RL_POS)) * (delta / 0.15)));
+			pose.set(Ghostie::EYELID_RU_POS,expresses[lastExp].get(Ghostie::EYELID_RU_POS) + ((expresses[currExp].get(Ghostie::EYELID_RU_POS) - expresses[lastExp].get(Ghostie::EYELID_RU_POS)) * (delta / 0.15)));
+			pose.set(Ghostie::EYELID_RU_ROT,expresses[lastExp].get(Ghostie::EYELID_RU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_RU_ROT) - expresses[lastExp].get(Ghostie::EYELID_RU_ROT)) * (delta / 0.15)));
 		}
 		
+		pose.draw(0,0,500,clock.getElapsedTime().asSeconds());
+		
 		// Done
+		render::drawView();
 		window.display();
 		
 		// Event Handling --------------------------------
@@ -144,27 +149,23 @@ int main(){
 				case sf::Event::KeyPressed:
 					switch(event.key.code){
 						case sf::Keyboard::Up:
-							pose.hlp -= 0.05;
-							pose.hrp -= 0.05;
+							pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
+							pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
 							
 							break;
 						case sf::Keyboard::Down:
-							pose.hlp += 0.05;
-							pose.hrp += 0.05;
+							pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
+							pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
 							
 							break;
 						case sf::Keyboard::Left:
-							pose.hlr -= 1.0;
-							pose.hrr -= 1.0;
+							pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
+							pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
 							
 							break;
 						case sf::Keyboard::Right:
-							pose.hlr += 1.0;
-							pose.hrr += 1.0;
-							
-							break;
-						case sf::Keyboard::O:
-							// pose.bodyOutline = !pose.bodyOutline;
+							pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
+							pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
 							
 							break;
 						default:
@@ -182,22 +183,22 @@ int main(){
 							
 							break;
 						case sf::Mouse::Right:
-							pose.bodyStyle = (render::ghostieBody)((pose.bodyStyle + 1) % render::BODY_COUNT);
+							pose.setStyle((Ghostie::ParticleStyle)((pose.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
 							
-							switch(pose.bodyStyle){
-								case render::BODY_NORMAL:
-									pose.bodySpeed = 1.0;
+							switch(pose.getStyle()){
+								case Ghostie::PARTICLE_STYLE_NORMAL:
+									pose.set(Ghostie::BODY_SPEED,1.0);
 									
 									break;
-								case render::BODY_SOLID:
-									pose.bodySpeed = 0.5;
+								case Ghostie::PARTICLE_STYLE_SOLID:
+									pose.set(Ghostie::BODY_SPEED,0.5);
 									
 									break;
-								case render::BODY_POINTY:
-									pose.bodySpeed = 2.0;
+								case Ghostie::PARTICLE_STYLE_POINTY:
+									pose.set(Ghostie::BODY_SPEED,2.0);
 									
 									break;
-								case render::BODY_COUNT:
+								case Ghostie::PARTICLE_STYLE_COUNT:
 									break;
 							}
 							

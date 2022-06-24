@@ -41,12 +41,12 @@
 				RAND_VAL_COUNT
 			};
 			
-			enum BodyStyle{
-				BODY_NORMAL,
-				BODY_SOLID,
-				BODY_POINTY,
+			enum ParticleStyle{
+				PARTICLE_STYLE_NORMAL,
+				PARTICLE_STYLE_SOLID,
+				PARTICLE_STYLE_POINTY,
 				
-				BODY_STYLE_COUNT
+				PARTICLE_STYLE_COUNT
 			};
 			
 			enum ParticleAttrib{
@@ -58,15 +58,24 @@
 			};
 						
 			static const unsigned int PARTICLE_COUNT = 50;
+			static void init();
 			
 			Ghostie();
+			
+			ParticleStyle getStyle() const;
+			void setStyle(ParticleStyle newStyle);
+			
 			void draw(float x,float y,float size,float time) const;
 			
 		private:
 			float randVals[RAND_VAL_COUNT];
+			
+			ParticleStyle style;
 			float particles[PARTICLE_COUNT * PARTICLE_ATTRIB_COUNT];
 			
-			float getParticleAttrib(unsigned int i,ParticleAttrib attrib);
+			float getR(unsigned int i) const;
+			
+			float getParticleAttrib(unsigned int i,ParticleAttrib attrib) const;
 			void setParticleAttrib(unsigned int i,ParticleAttrib attrib,float newVal);
 	};
 	
