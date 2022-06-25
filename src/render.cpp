@@ -3,12 +3,21 @@
 
 #include "render.hpp"
 
-#define VIEW_TOP_BOTTOM_PADDING 100
+#define SCROLL_HEIGHT 7
+
+#define SEQUENCE_HEIGHT 20
+#define SEQUENCE_BAR_WIDTH 18
+
+#define VIEW_TOP_BOTTOM_PADDING (SCROLL_HEIGHT + SEQUENCE_HEIGHT)
 
 namespace render{
 	// Variables --------------------------------------------------
 	sf::RenderWindow *window;
+	float winWidth,winHeight;
 	sf::Vector2u dimension;
+	
+	sf::RectangleShape scrollBackground,scrollBar;
+	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted;
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -24,6 +33,7 @@ namespace render{
 	
 	// Functions --------------------------------------------------
 	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimension){
+		// Render Containers
 		window = &renderWindow;
 		dimension = innerDimension;
 		
@@ -50,6 +60,7 @@ namespace render{
 		
 		resize();
 		
+		// UI Elements
 		sf::Vector2f viewBoundsSize = sf::Vector2f(dimension.x - 10,dimension.y - 10);
 		
 		view::viewBounds.setSize(viewBoundsSize);
@@ -59,12 +70,27 @@ namespace render{
 		view::viewBounds.setOutlineColor(sf::Color(0,0,0,0xff));
 		view::viewBounds.setOutlineThickness(5.0);
 		
+		scrollBackground.setFillColor(sf::Color(80,80,80,0xff));
+		scrollBar.setFillColor(sf::Color(200,200,200,0xff));
+		
+		sequenceBackground.setFillColor(sf::Color(150,150,150,0xff));
+		
+		sequenceBar.setFillColor(sf::Color(100,100,100,0xff));
+		sequenceBar.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
+		sequenceBar.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
+		
+		sequenceBarHighlighted.setFillColor(sf::Color(150,100,40,0xff));
+		sequenceBarHighlighted.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
+		sequenceBarHighlighted.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
+		
 		return true;
 	}
 	
 	void resize(){
-		float scale = (window->getView().getSize().y - VIEW_TOP_BOTTOM_PADDING) / dimension.y;
+		winWidth = window->getView().getSize().x;
+		winHeight = window->getView().getSize().y;
 		
+		float scale = (winHeight - VIEW_TOP_BOTTOM_PADDING) / dimension.y;
 		view::viewSprite.setScale(sf::Vector2f(scale,scale));
 	}
 	
@@ -74,6 +100,32 @@ namespace render{
 	
 	void drawView(){
 		window->draw(view::viewSprite);
+	}
+	
+	void drawUIBackground(float scrollBegin,float scrollEnd){
+		// Sequence Scroll Bar
+		scrollBackground.setSize(sf::Vector2f(winWidth,SCROLL_HEIGHT));
+		scrollBackground.setPosition(-winWidth / 2.0,winHeight / 2.0 - SCROLL_HEIGHT);
+		window->draw(scrollBackground);
+		
+		scrollBar.setSize(sf::Vector2f((scrollEnd - scrollBegin) * winWidth,SCROLL_HEIGHT));
+		scrollBar.setPosition((scrollBegin - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT);
+		window->draw(scrollBar);
+		
+		// Sequence Frames
+		sequenceBackground.setSize(sf::Vector2f(winWidth,SEQUENCE_HEIGHT));
+		sequenceBackground.setPosition(-winWidth / 2.0,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
+		window->draw(sequenceBackground);
+	}
+	
+	void drawSequenceBar(bool highlighted,float x){
+		if(highlighted){
+			sequenceBarHighlighted.setPosition((x - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
+			window->draw(sequenceBarHighlighted);
+		}else{
+			sequenceBar.setPosition((x - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
+			window->draw(sequenceBar);
+		}
 	}
 	
 	namespace view{

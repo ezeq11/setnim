@@ -8,6 +8,8 @@
 		void clear();
 		
 		void drawView();
+		void drawUIBackground(float scrollBegin,float scrollEnd);
+		void drawSequenceBar(bool highlighted,float x);
 		
 		namespace view{
 			void clear();

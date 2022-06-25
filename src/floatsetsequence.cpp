@@ -1,9 +1,10 @@
 #include <cmath>
 
 #include "floatsetsequence.hpp"
+#include "render.hpp"
 
 FloatSetSequence::FloatSetSequence(FloatSet *newBuffer)
-:sets(),selected(NULL),buffer(0.0,newBuffer){
+:sets(),selected(sets.end()),buffer(0.0,newBuffer){
 	
 }
 
@@ -15,42 +16,42 @@ FloatSet *FloatSetSequence::select(float time){
 	std::list<TimedContainer *>::iterator it = find(time);
 	
 	if(it == sets.begin()){
-		selected = NULL;
+		selected = sets.end();
 		
 		return NULL;
 	}
 	
-	selected = &(--it);
+	selected = --it;
 	
-	return (**selected)->getSet();
+	return (*selected)->getSet();
 }
 
 void FloatSetSequence::deselect(){
-	selected = NULL;
+	selected = sets.end();
 }
 
 void FloatSetSequence::remove(){
-	if(selected == NULL){
+	if(selected == sets.end()){
 		return;
 	}
 	
-	delete **selected;
-	sets.erase(*selected);
-	selected = NULL;
+	delete *selected;
+	sets.erase(selected);
+	selected = sets.end();
 }
 
 void FloatSetSequence::move(float newTime){
-	if(selected == NULL){
+	if(selected == sets.end()){
 		return;
 	}
 	
 	std::list<TimedContainer *>::iterator newPosition = find(newTime);
-	TimedContainer *moved = **selected;
+	TimedContainer *moved = *selected;
 	
-	sets.erase(*selected);
+	sets.erase(selected);
 	sets.insert(newPosition,moved);
 	
-	selected = &(--newPosition);
+	selected = --newPosition;
 }
 
 const FloatSet *FloatSetSequence::getInstant(float time){
@@ -67,6 +68,27 @@ const FloatSet *FloatSetSequence::getInstant(float time){
 	buffer.interpolateFrom(*begin,*end);
 	
 	return buffer.getSet();
+}
+
+#define DRAW_ITERATOR() render::drawSequenceBar(it == selected,((*it)->getTime() - begin) / (end - begin))
+
+void FloatSetSequence::drawBar(float begin,float end){
+	std::list<TimedContainer *>::iterator it = find(begin);
+	
+	if(it != sets.begin()){
+		--it;
+		DRAW_ITERATOR();
+		++it;
+	}
+	
+	while(it != sets.end() && (*it)->getTime() < end){
+		DRAW_ITERATOR();
+		++it;
+	}
+	
+	if(it != sets.end()){
+		DRAW_ITERATOR();
+	}
 }
 
 std::list<FloatSetSequence::TimedContainer *>::iterator FloatSetSequence::find(float time){

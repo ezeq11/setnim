@@ -62,6 +62,8 @@ void Ghostie::setStyle(ParticleStyle newStyle){
 }
 
 void Ghostie::draw(float x,float y,float size,float time) const{
+	using namespace render;
+	
 	switch(style){
 		case PARTICLE_STYLE_NORMAL:
 			body = &bodyNormal;
@@ -84,8 +86,8 @@ void Ghostie::draw(float x,float y,float size,float time) const{
 	body->setFillColor(sf::Color(225,225,225,0xff));
 	body->setScale((size * 0.75 / 4.0) / 2.0,(size / 4.0) / 2.0);
 	
-	render::view::draw(*body,sf::Transform().rotate(get(HAND_L_ROT)).translate(x - size / 8.0,y - get(HAND_L_POS) * size * 0.75));
-	render::view::draw(*body,sf::Transform().rotate(get(HAND_R_ROT)).translate(x + size / 8.0,y - get(HAND_R_POS) * size * 0.75));
+	view::draw(*body,sf::Transform().rotate(get(HAND_L_ROT)).translate(x - size / 8.0,y - get(HAND_L_POS) * size * 0.75));
+	view::draw(*body,sf::Transform().rotate(get(HAND_R_ROT)).translate(x + size / 8.0,y - get(HAND_R_POS) * size * 0.75));
 	
 	// Body -------------------------------
 	// bodyNormal.setFillColor(sf::Color(150,150,150,75.0));
@@ -94,7 +96,7 @@ void Ghostie::draw(float x,float y,float size,float time) const{
 	body->setFillColor(sf::Color(225,225,225,0xff));
 	body->setScale(1.0,1.0);
 	
-	render::view::draw(*body,sf::Transform().translate(x,y).scale(size * get(SHELL_SCALE) / 2.0,size * get(SHELL_SCALE) / 2.0).rotate(get(SHELL_ROT)));
+	view::draw(*body,sf::Transform().translate(x,y).scale(size * get(SHELL_SCALE) / 2.0,size * get(SHELL_SCALE) / 2.0).rotate(get(SHELL_ROT)));
 	
 	float pd,px,py;
 	float factor,col;
@@ -117,7 +119,7 @@ void Ghostie::draw(float x,float y,float size,float time) const{
 		factor = 4.0 + 2.5 * (float)i / (float)PARTICLE_COUNT;
 		
 		body->setFillColor(sf::Color(col,col,col,0xff));
-		render::view::draw(*body,sf::Transform().translate(x + (px * size / 2.0),y + (py * size / 2.0)).scale(size * 0.75 * (1.0 - 0.5 * fabs(pd)) / factor,size * (1.0 - 0.5 * fabs(pd)) / factor));//.rotate(time * 180.0)));
+		view::draw(*body,sf::Transform().translate(x + (px * size / 2.0),y + (py * size / 2.0)).scale(size * 0.75 * (1.0 - 0.5 * fabs(pd)) / factor,size * (1.0 - 0.5 * fabs(pd)) / factor));//.rotate(time * 180.0)));
 	}
 	
 	// view.draw(body,sf::RenderStates(sf::Transform().translate(x,y).scale(size / 2.0,size / 2.0)));
@@ -129,28 +131,28 @@ void Ghostie::draw(float x,float y,float size,float time) const{
 	float eyeLeftX = ((eyeWidth * -2.3 / 2.0) * (0.9 + fabs(cos(get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_L_POS) * eyeWidth);
 	float eyeRightX = ((eyeWidth * 2.3 / 2.0) * (0.9 + fabs(cos(get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_R_POS) * eyeWidth);
 	
-	render::view::temp::clear();
+	view::temp::clear();
 	
 	// Eyes
 	eye.setScale(sf::Vector2f(eyeWidth / 2.0,eyeHeight / 2.0));
 	
-	render::view::temp::draw(eye,sf::Transform().translate(eyeLeftX,0.0));
-	render::view::temp::draw(eye,sf::Transform().translate(eyeRightX,0.0));
+	view::temp::draw(eye,sf::Transform().translate(eyeLeftX,0.0));
+	view::temp::draw(eye,sf::Transform().translate(eyeRightX,0.0));
 	
 	// Lower Eyelids
 	lowerEyeLid.setScale(sf::Vector2f(eyeWidth,eyeHeight / 1.5));
 	
-	render::view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(eyeHeight / 2.0) * (1.0 - get(EYELID_LL_POS))).rotate(getR(RAND_EYELID_LL_ROT)));
-	render::view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(eyeHeight / 2.0) * (1.0 - get(EYELID_RL_POS))).rotate(getR(RAND_EYELID_RL_ROT)));
+	view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(eyeHeight / 2.0) * (1.0 - get(EYELID_LL_POS))).rotate(getR(RAND_EYELID_LL_ROT)));
+	view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(eyeHeight / 2.0) * (1.0 - get(EYELID_RL_POS))).rotate(getR(RAND_EYELID_RL_ROT)));
 	
 	// Upper Eyelids
 	upperEyeLid.setScale(sf::Vector2f(eyeWidth * 2.0,eyeHeight / 1.5));
 	
-	render::view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_LU_POS))).rotate(get(EYELID_LU_ROT) + getR(RAND_EYELID_LU_ROT)));
-	render::view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_RU_POS))).rotate(get(EYELID_RU_ROT) + getR(RAND_EYELID_RU_ROT)));
+	view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_LU_POS))).rotate(get(EYELID_LU_ROT) + getR(RAND_EYELID_LU_ROT)));
+	view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_RU_POS))).rotate(get(EYELID_RU_ROT) + getR(RAND_EYELID_RU_ROT)));
 	
 	// Face -------------------------------
-	render::view::drawTemp(sf::Transform().translate(x,y).rotate(get(FACE_ROT)).translate(size * 0.75 * get(FACE_DIST) / 2.0,0.0).rotate(-get(FACE_ROT) / 1.25));
+	view::drawTemp(sf::Transform().translate(x,y).rotate(get(FACE_ROT)).translate(size * 0.75 * get(FACE_DIST) / 2.0,0.0).rotate(-get(FACE_ROT) / 1.25));
 }
 
 float Ghostie::getR(unsigned int i) const{

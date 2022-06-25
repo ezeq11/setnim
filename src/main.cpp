@@ -9,6 +9,8 @@
 
 #include "render.hpp"
 #include "ghostie.hpp"
+#include "floatsetsequence.hpp"
+#include "timeView.hpp"
 
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
@@ -60,12 +62,28 @@ int main(){
 	window.create(sf::VideoMode(windowWidth,windowHeight),"Ghostie Tiem",sf::Style::Default,glSettings);
 	
 	// Execution -----------------------------------------
-	bool run = true;
-	sf::Event event;
-	
+	timeView::init();
 	render::init(window,sf::Vector2u(1920,1080));
 	Ghostie::init();
+	
 	resizeContext(windowWidth,windowHeight);
+	
+	bool run = true;
+	
+	sf::Event event;
+	bool isCtrlDown;
+	
+	
+	
+	Ghostie bufferGhostie;
+	FloatSetSequence ghostieSequence((FloatSet *)&bufferGhostie);
+	
+	ghostieSequence.add(0.2,NULL);
+	ghostieSequence.add(0.4,NULL);
+	ghostieSequence.add(0.6,NULL);
+	ghostieSequence.select(0.5);
+	
+	
 	
 	sf::Clock clock;
 	sf::Time transfer = clock.getElapsedTime();
@@ -95,7 +113,7 @@ int main(){
 	
 	while(window.isOpen() && run){
 		// Drawing ---------------------------------------
-		window.clear(sf::Color(0xff,0,0x0f,255));
+		window.clear(sf::Color(0,0,0,0xff));
 		render::view::clear();
 		
 		// float pace = sin(clock.getElapsedTime().asSeconds());
@@ -129,11 +147,15 @@ int main(){
 		
 		// Done
 		render::drawView();
+		
+		render::drawUIBackground(timeView::getBegin(),timeView::getEnd());
+		ghostieSequence.drawBar(timeView::getBegin(),timeView::getEnd());
+		
 		window.display();
 		
 		// Event Handling --------------------------------
 		if(window.pollEvent(event)){
-			// isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
+			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
 			// isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
 			// isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
@@ -206,6 +228,14 @@ int main(){
 						default:
 							break;
 					}
+				case sf::Event::MouseWheelScrolled:
+					if(isCtrlDown){
+						timeView::zoomBy(event.mouseWheelScroll.delta);
+					}else{
+						timeView::translateBy(event.mouseWheelScroll.delta / 10.0);
+					}
+					
+					break;
 				default:
 					break;
 			}

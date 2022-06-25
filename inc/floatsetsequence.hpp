@@ -35,6 +35,8 @@
 			
 			const FloatSet *getInstant(float time);
 			
+			void drawBar(float begin,float end);
+			
 		private:
 			class TimedContainer{
 				public:
@@ -62,7 +64,7 @@
 			};
 			
 			std::list<TimedContainer *> sets;
-			std::list<TimedContainer *>::iterator *selected;
+			std::list<TimedContainer *>::iterator selected;
 			
 			TimedContainer buffer;
 			
