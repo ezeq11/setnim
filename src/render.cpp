@@ -17,7 +17,7 @@ namespace render{
 	sf::Vector2u dimension;
 	
 	sf::RectangleShape scrollBackground,scrollBar;
-	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted;
+	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -79,9 +79,13 @@ namespace render{
 		sequenceBar.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
 		sequenceBar.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
 		
-		sequenceBarHighlighted.setFillColor(sf::Color(150,100,40,0xff));
+		sequenceBarHighlighted.setFillColor(sf::Color(160,100,10,0xff));
 		sequenceBarHighlighted.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
 		sequenceBarHighlighted.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
+		
+		sequenceBarCursor.setFillColor(sf::Color(100,0,150,0xff));
+		sequenceBarCursor.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT / 2.0));
+		sequenceBarCursor.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
 		
 		return true;
 	}
@@ -118,13 +122,28 @@ namespace render{
 		window->draw(sequenceBackground);
 	}
 	
-	void drawSequenceBar(bool highlighted,float x){
-		if(highlighted){
-			sequenceBarHighlighted.setPosition((x - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
-			window->draw(sequenceBarHighlighted);
-		}else{
-			sequenceBar.setPosition((x - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
-			window->draw(sequenceBar);
+	void drawSequenceBar(SequenceBar type,float x){
+		float scrX = (x - 0.5) * winWidth;
+		float scrY = winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT;
+		
+		switch(type){
+			case SEQ_BAR_NORMAL:
+				sequenceBar.setPosition(scrX,scrY);
+				window->draw(sequenceBar);
+				
+				break;
+			case SEQ_BAR_HIGHLIGHTED:
+				sequenceBarHighlighted.setPosition(scrX,scrY);
+				window->draw(sequenceBarHighlighted);
+				
+				break;
+			case SEQ_BAR_CURSOR:
+				sequenceBarCursor.setPosition(scrX,scrY);
+				window->draw(sequenceBarCursor);
+				
+				break;
+			default:
+				break;
 		}
 	}
 	
@@ -163,4 +182,4 @@ namespace render{
 			}
 		}
 	}
-	}
+}

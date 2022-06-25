@@ -4,7 +4,7 @@
 #include "render.hpp"
 
 FloatSetSequence::FloatSetSequence(FloatSet *newBuffer)
-:sets(),selected(sets.end()),buffer(0.0,newBuffer){
+:sets(),selected(sets.end()),lastSelected(sets.end()),buffer(0.0,newBuffer){
 	
 }
 
@@ -13,6 +13,8 @@ void FloatSetSequence::add(float time,FloatSet *set){
 }
 
 FloatSet *FloatSetSequence::select(float time){
+	lastSelected = selected;
+	
 	std::list<TimedContainer *>::iterator it = find(time);
 	
 	if(it == sets.begin()){
@@ -23,7 +25,13 @@ FloatSet *FloatSetSequence::select(float time){
 	
 	selected = --it;
 	
-	return (*selected)->getSet();
+	if(lastSelected == selected){
+		selected = sets.end();
+		
+		return NULL;
+	}else{
+		return (*selected)->getSet();
+	}
 }
 
 void FloatSetSequence::deselect(){
@@ -45,10 +53,11 @@ void FloatSetSequence::move(float newTime){
 		return;
 	}
 	
-	std::list<TimedContainer *>::iterator newPosition = find(newTime);
 	TimedContainer *moved = *selected;
+	moved->setTime(newTime);
 	
 	sets.erase(selected);
+	std::list<TimedContainer *>::iterator newPosition = find(newTime);
 	sets.insert(newPosition,moved);
 	
 	selected = --newPosition;
@@ -70,7 +79,7 @@ const FloatSet *FloatSetSequence::getInstant(float time){
 	return buffer.getSet();
 }
 
-#define DRAW_ITERATOR() render::drawSequenceBar(it == selected,((*it)->getTime() - begin) / (end - begin))
+#define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,((*it)->getTime() - begin) / (end - begin))
 
 void FloatSetSequence::drawBar(float begin,float end){
 	std::list<TimedContainer *>::iterator it = find(begin);

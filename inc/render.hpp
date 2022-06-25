@@ -7,9 +7,15 @@
 		
 		void clear();
 		
+		enum SequenceBar{
+			SEQ_BAR_NORMAL,
+			SEQ_BAR_HIGHLIGHTED,
+			SEQ_BAR_CURSOR
+		};
+		
 		void drawView();
 		void drawUIBackground(float scrollBegin,float scrollEnd);
-		void drawSequenceBar(bool highlighted,float x);
+		void drawSequenceBar(SequenceBar type,float x);
 		
 		namespace view{
 			void clear();

@@ -71,9 +71,11 @@ int main(){
 	bool run = true;
 	
 	sf::Event event;
-	bool isCtrlDown;
+	bool isCtrlDown,isAltDown,isShiftDown;
 	
+	float timeViewCursor;
 	
+	FloatSet *lastSelection = NULL;
 	
 	Ghostie bufferGhostie;
 	FloatSetSequence ghostieSequence((FloatSet *)&bufferGhostie);
@@ -112,6 +114,8 @@ int main(){
 	float faceDist,faceRot;
 	
 	while(window.isOpen() && run){
+		timeViewCursor = (float)sf::Mouse::getPosition(window).x / (float)window.getView().getSize().x;
+		
 		// Drawing ---------------------------------------
 		window.clear(sf::Color(0,0,0,0xff));
 		render::view::clear();
@@ -151,13 +155,15 @@ int main(){
 		render::drawUIBackground(timeView::getBegin(),timeView::getEnd());
 		ghostieSequence.drawBar(timeView::getBegin(),timeView::getEnd());
 		
+		render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
+		
 		window.display();
 		
 		// Event Handling --------------------------------
 		if(window.pollEvent(event)){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
-			// isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
-			// isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
+			isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
+			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
 			switch(event.type){
 				case sf::Event::Closed:
@@ -190,6 +196,12 @@ int main(){
 							pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
 							
 							break;
+						case sf::Keyboard::D:
+							if(isCtrlDown){
+								ghostieSequence.remove();
+							}
+							
+							break;
 						default:
 							break;
 					}
@@ -198,10 +210,24 @@ int main(){
 				case sf::Event::MouseButtonPressed:
 					switch(event.mouseButton.button){
 						case sf::Mouse::Left:
-							transfer = clock.getElapsedTime();
+							/*transfer = clock.getElapsedTime();
 							
 							lastExp = currExp;
-							currExp = (Expression)((currExp + 1) % EXP_COUNT);
+							currExp = (Expression)((currExp + 1) % EXP_COUNT);*/
+							
+							{
+								float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
+								
+								if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+									ghostieSequence.add(seqTime,NULL);
+									
+								}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+									ghostieSequence.move(seqTime);
+									
+								}else{
+									lastSelection = ghostieSequence.select(seqTime);
+								}
+							}
 							
 							break;
 						case sf::Mouse::Right:
@@ -229,7 +255,7 @@ int main(){
 							break;
 					}
 				case sf::Event::MouseWheelScrolled:
-					if(isCtrlDown){
+					if(isShiftDown){
 						timeView::zoomBy(event.mouseWheelScroll.delta);
 					}else{
 						timeView::translateBy(event.mouseWheelScroll.delta / 10.0);

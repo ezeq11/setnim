@@ -64,7 +64,7 @@
 			};
 			
 			std::list<TimedContainer *> sets;
-			std::list<TimedContainer *>::iterator selected;
+			std::list<TimedContainer *>::iterator selected,lastSelected;
 			
 			TimedContainer buffer;
 			
