@@ -1,29 +1,30 @@
 #include "animation.hpp"
+#include "render.hpp"
 
-void charSceneAddBefore(Character *c){
+void charSceneAddBefore(Character *c,unsigned int i,bool isCurrent){
 	c->addBefore(new FloatSetSequence(c));
 }
 
-void charSceneAddAfter(Character *c){
+void charSceneAddAfter(Character *c,unsigned int i,bool isCurrent){
 	c->addAfter(new FloatSetSequence(c));
 }
 
-void charSceneForward(Character *c){
+void charSceneForward(Character *c,unsigned int i,bool isCurrent){
 	c->forward();
 }
 
-void charSceneBackward(Character *c){
+void charSceneBackward(Character *c,unsigned int i,bool isCurrent){
 	c->backward();
 }
 
-void charSceneRemove(Character *c){
+void charSceneRemove(Character *c,unsigned int i,bool isCurrent){
 	delete c->current();
 	c->remove();
 }
 
-void charSceneClear(Character *c){
+void charSceneClear(Character *c,unsigned int i,bool isCurrent){
 	while(c->length() > 0){
-		charSceneRemove(c);
+		charSceneRemove(c,0,false);
 	}
 }
 
@@ -32,15 +33,20 @@ void Animation::charPrepare(Character *newChar){
 		return;
 	}
 	
-	charSceneClear(newChar);
+	charSceneClear(newChar,0,false);
 	
 	for(unsigned int i = 0;i < sceneLengths.length();++i){
 		if(i < sceneLengths.pos()){
-			charSceneAddBefore(newChar);
+			charSceneAddBefore(newChar,0,false);
 		}else{
-			charSceneAddAfter(newChar);
+			charSceneAddAfter(newChar,0,false);
 		}
 	}
+}
+
+Animation::~Animation(){
+	sceneClear();
+	charClear();
 }
 
 void Animation::charAddBefore(Character *newChar){
@@ -66,7 +72,7 @@ void Animation::charRemove(){
 		return;
 	}
 	
-	charSceneClear(characters.current());
+	charSceneClear(characters.current(),0,false);
 	delete characters.current();
 	
 	characters.remove();
@@ -76,6 +82,17 @@ void Animation::charClear(){
 	while(characters.length() > 0){
 		charRemove();
 	}
+}
+
+int charMarkerCurrentPos;
+
+void charDrawMarker(Character *c,unsigned int i,bool isCurrent){
+	render::drawCharMarker(isCurrent,(int)i - charMarkerCurrentPos);
+}
+
+void Animation::charDrawMarkers(){
+	charMarkerCurrentPos = characters.pos();
+	characters.forAll(charDrawMarker);
 }
 
 void Animation::sceneAddBefore(float length){
@@ -109,6 +126,17 @@ void Animation::sceneClear(){
 	while(sceneLengths.length() > 0){
 		sceneRemove();
 	}
+}
+
+int sceneMarkerCurrentPos;
+
+void sceneDrawMarker(float *length,unsigned int i,bool isCurrent){
+	render::drawSceneMarker(isCurrent,(int)i - sceneMarkerCurrentPos);
+}
+
+void Animation::sceneDrawMarkers(){
+	sceneMarkerCurrentPos = sceneLengths.pos();
+	sceneLengths.forAll(sceneDrawMarker);
 }
 
 float Animation::sceneGetLength(){

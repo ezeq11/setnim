@@ -11,6 +11,7 @@
 #include "ghostie.hpp"
 #include "floatsetsequence.hpp"
 #include "timeView.hpp"
+#include "animation.hpp"
 
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
@@ -75,15 +76,9 @@ int main(){
 	
 	float timeViewCursor;
 	
+	Animation anim;
+	
 	FloatSet *lastSelection = NULL;
-	
-	Ghostie bufferGhostie;
-	FloatSetSequence ghostieSequence((FloatSet *)&bufferGhostie);
-	
-	ghostieSequence.add(0.2,NULL);
-	ghostieSequence.add(0.4,NULL);
-	ghostieSequence.add(0.6,NULL);
-	ghostieSequence.select(0.5);
 	
 	
 	
@@ -157,9 +152,15 @@ int main(){
 		render::drawView();
 		
 		render::drawUIBackground(timeView::getBegin(),timeView::getEnd());
-		ghostieSequence.drawBar(timeView::getBegin(),timeView::getEnd());
 		
-		render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
+		anim.sceneDrawMarkers();
+		
+		if(anim.currentSequence() != NULL){
+			anim.currentSequence()->drawBar(timeView::getBegin(),timeView::getEnd());
+			render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
+		}
+		
+		anim.charDrawMarkers();
 		
 		window.display();
 		
@@ -191,18 +192,54 @@ int main(){
 							
 							break;
 						case sf::Keyboard::Left:
-							pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
-							pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
+							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+								if(isCtrlDown){
+									anim.charAddBefore(new Ghostie());
+								}else{
+									anim.charBackward();
+								}
+							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+								if(isCtrlDown){
+									anim.sceneAddBefore(0.5);
+								}else{
+									anim.sceneBackward();
+								}
+							}else{
+								pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
+								pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
+							}
 							
 							break;
 						case sf::Keyboard::Right:
-							pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
-							pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
+							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+								if(isCtrlDown){
+									anim.charAddAfter(new Ghostie());
+								}else{
+									anim.charForward();
+								}
+							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+								if(isCtrlDown){
+									anim.sceneAddAfter(0.5);
+								}else{
+									anim.sceneForward();
+								}
+							}else{
+								pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
+								pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
+							}
 							
 							break;
 						case sf::Keyboard::D:
-							if(isCtrlDown){
-								ghostieSequence.remove();
+							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+								anim.charRemove();
+								
+							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+								anim.sceneRemove();
+								
+							}else if(isCtrlDown){
+								if(anim.currentSequence() != NULL){
+									anim.currentSequence()->remove();
+								}
 							}
 							
 							break;
@@ -223,13 +260,19 @@ int main(){
 								float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
 								
 								if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-									ghostieSequence.add(seqTime,NULL);
+									if(anim.currentSequence() != NULL){
+										anim.currentSequence()->add(seqTime,NULL);
+									}
 									
 								}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-									ghostieSequence.move(seqTime);
+									if(anim.currentSequence() != NULL){
+										anim.currentSequence()->move(seqTime);
+									}
 									
 								}else{
-									lastSelection = ghostieSequence.select(seqTime);
+									if(anim.currentSequence() != NULL){
+										lastSelection = anim.currentSequence()->select(seqTime);
+									}
 								}
 							}
 							

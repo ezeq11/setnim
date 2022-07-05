@@ -14,9 +14,12 @@
 				
 			}
 			
-			void forAll(void (*action)(T)){
+			void forAll(void (*action)(T,unsigned int,bool)){
+				unsigned int i = 0;
+				
 				for(typename std::list<T>::iterator it = iterables.begin();it != iterables.end();++it){
-					action(*it);
+					action(*it,i,it == p);
+					++i;
 				}
 			}
 			
@@ -50,6 +53,7 @@
 				++p;
 				iterables.insert(p,newIterable);
 				--p;
+				--p;
 				
 				return current();
 			}
@@ -57,6 +61,10 @@
 			T forward(){
 				if(p != iterables.end()){
 					++p;
+				}
+				
+				if(p == iterables.end()){
+					--p;
 				}
 				
 				return current();

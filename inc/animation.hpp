@@ -9,6 +9,8 @@
 			void charPrepare(Character *newChar);
 			
 		public:
+			~Animation();
+			
 			void charAddBefore(Character *newChar);
 			void charAddAfter(Character *newChar);
 			void charForward();
@@ -16,12 +18,16 @@
 			void charRemove();
 			void charClear();
 			
+			void charDrawMarkers();
+			
 			void sceneAddBefore(float length);
 			void sceneAddAfter(float length);
 			void sceneForward();
 			void sceneBackward();
 			void sceneRemove();
 			void sceneClear();
+			
+			void sceneDrawMarkers();
 			
 			float sceneGetLength();
 			void sceneSetLength(float newLength);

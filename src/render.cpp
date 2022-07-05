@@ -3,12 +3,20 @@
 
 #include "render.hpp"
 
+#define SCENE_HEIGHT 20
+
+#define SCENE_MARKER_MARGIN 2
+#define SCENE_MARKER_HEIGHT (SCENE_HEIGHT - SCENE_MARKER_MARGIN - SCENE_MARKER_MARGIN)
+#define SCENE_MARKER_WIDTH 30
+
 #define SCROLL_HEIGHT 7
 
-#define SEQUENCE_HEIGHT 20
+#define SEQUENCE_HEIGHT 15
 #define SEQUENCE_BAR_WIDTH 18
 
-#define VIEW_TOP_BOTTOM_PADDING (SCROLL_HEIGHT + SEQUENCE_HEIGHT)
+#define CHARACTER_HEIGHT 20
+
+#define VIEW_TOP_BOTTOM_PADDING (SCENE_HEIGHT + CHARACTER_HEIGHT + SCROLL_HEIGHT + SEQUENCE_HEIGHT)
 
 namespace render{
 	// Variables --------------------------------------------------
@@ -16,8 +24,10 @@ namespace render{
 	float winWidth,winHeight;
 	sf::Vector2u dimension;
 	
+	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted;
 	sf::RectangleShape scrollBackground,scrollBar;
 	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
+	sf::RectangleShape characterBackground;
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -33,7 +43,7 @@ namespace render{
 	
 	// Functions --------------------------------------------------
 	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimension){
-		// Render Containers
+		// Render Containers ----------------
 		window = &renderWindow;
 		dimension = innerDimension;
 		
@@ -60,7 +70,8 @@ namespace render{
 		
 		resize();
 		
-		// UI Elements
+		// UI Elements ----------------------
+		// View Bounds
 		sf::Vector2f viewBoundsSize = sf::Vector2f(dimension.x - 10,dimension.y - 10);
 		
 		view::viewBounds.setSize(viewBoundsSize);
@@ -70,9 +81,22 @@ namespace render{
 		view::viewBounds.setOutlineColor(sf::Color(0,0,0,0xff));
 		view::viewBounds.setOutlineThickness(5.0);
 		
+		// Scene
+		sceneBackground.setFillColor(sf::Color(50,50,50,0xff));
+		
+		sceneMarker.setFillColor(sf::Color(160,160,160,0xff));
+		sceneMarker.setSize(sf::Vector2f(SCENE_MARKER_WIDTH,SCENE_MARKER_HEIGHT));
+		sceneMarker.setOrigin(SCENE_MARKER_WIDTH / 2.0,-SCENE_MARKER_MARGIN);
+		
+		sceneMarkerHighlighted.setFillColor(sf::Color(160,100,10,0xff));
+		sceneMarkerHighlighted.setSize(sf::Vector2f(SCENE_MARKER_WIDTH,SCENE_MARKER_HEIGHT));
+		sceneMarkerHighlighted.setOrigin(SCENE_MARKER_WIDTH / 2.0,-SCENE_MARKER_MARGIN);
+		
+		// Scroll
 		scrollBackground.setFillColor(sf::Color(80,80,80,0xff));
 		scrollBar.setFillColor(sf::Color(200,200,200,0xff));
 		
+		// Sequence
 		sequenceBackground.setFillColor(sf::Color(150,150,150,0xff));
 		
 		sequenceBar.setFillColor(sf::Color(100,100,100,0xff));
@@ -86,6 +110,9 @@ namespace render{
 		sequenceBarCursor.setFillColor(sf::Color(100,0,150,0xff));
 		sequenceBarCursor.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT / 2.0));
 		sequenceBarCursor.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
+		
+		// Character
+		characterBackground.setFillColor(sf::Color(80,80,80,0xff));
 		
 		return true;
 	}
@@ -107,24 +134,50 @@ namespace render{
 	}
 	
 	void drawUIBackground(float scrollBegin,float scrollEnd){
+		float left = -winWidth / 2.0;
+		float top = winHeight / 2.0;
+		
+		// Scenes
+		sceneBackground.setSize(sf::Vector2f(winWidth,SCENE_HEIGHT));
+		sceneBackground.setPosition(left,top - SCENE_HEIGHT);
+		window->draw(sceneBackground);
+		
 		// Sequence Scroll Bar
 		scrollBackground.setSize(sf::Vector2f(winWidth,SCROLL_HEIGHT));
-		scrollBackground.setPosition(-winWidth / 2.0,winHeight / 2.0 - SCROLL_HEIGHT);
+		scrollBackground.setPosition(left,top- SCENE_HEIGHT - SCROLL_HEIGHT);
 		window->draw(scrollBackground);
 		
 		scrollBar.setSize(sf::Vector2f((scrollEnd - scrollBegin) * winWidth,SCROLL_HEIGHT));
-		scrollBar.setPosition((scrollBegin - 0.5) * winWidth,winHeight / 2.0 - SCROLL_HEIGHT);
+		scrollBar.setPosition((scrollBegin - 0.5) * winWidth,top - SCENE_HEIGHT - SCROLL_HEIGHT);
 		window->draw(scrollBar);
 		
 		// Sequence Frames
 		sequenceBackground.setSize(sf::Vector2f(winWidth,SEQUENCE_HEIGHT));
-		sequenceBackground.setPosition(-winWidth / 2.0,winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
+		sequenceBackground.setPosition(left,top - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
 		window->draw(sequenceBackground);
+		
+		// Characters
+		characterBackground.setSize(sf::Vector2f(winWidth,CHARACTER_HEIGHT));
+		characterBackground.setPosition(left,top - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - CHARACTER_HEIGHT);
+		window->draw(characterBackground);
+	}
+	
+	void drawSceneMarker(bool highlighted,int x){
+		float scrX = x * (SCENE_MARKER_WIDTH + SCENE_MARKER_MARGIN + SCENE_MARKER_MARGIN);
+		float scrY = winHeight / 2.0 - SCENE_HEIGHT;
+		
+		if(highlighted){
+			sceneMarkerHighlighted.setPosition(scrX,scrY);
+			window->draw(sceneMarkerHighlighted);
+		}else{
+			sceneMarker.setPosition(scrX,scrY);
+			window->draw(sceneMarker);
+		}
 	}
 	
 	void drawSequenceBar(SequenceBar type,float x){
 		float scrX = (x - 0.5) * winWidth;
-		float scrY = winHeight / 2.0 - SCROLL_HEIGHT - SEQUENCE_HEIGHT;
+		float scrY = winHeight / 2.0 - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT;
 		
 		switch(type){
 			case SEQ_BAR_NORMAL:
@@ -144,6 +197,19 @@ namespace render{
 				break;
 			default:
 				break;
+		}
+	}
+	
+	void drawCharMarker(bool highlighted,int x){
+		float scrX = x * (SCENE_MARKER_WIDTH + SCENE_MARKER_MARGIN + SCENE_MARKER_MARGIN);
+		float scrY = winHeight / 2.0 - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - CHARACTER_HEIGHT;
+		
+		if(highlighted){
+			sceneMarkerHighlighted.setPosition(scrX,scrY);
+			window->draw(sceneMarkerHighlighted);
+		}else{
+			sceneMarker.setPosition(scrX,scrY);
+			window->draw(sceneMarker);
 		}
 	}
 	
