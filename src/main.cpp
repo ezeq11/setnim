@@ -95,6 +95,10 @@ int main(){
 	
 	Ghostie pose;
 	
+	pose.set(Ghostie::X,0.0);
+	pose.set(Ghostie::Y,0.0);
+	pose.set(Ghostie::SIZE,500.0);
+	
 	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3);
 	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_ROT,-30.0);
 	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3);
@@ -147,7 +151,7 @@ int main(){
 			pose.set(Ghostie::EYELID_RU_ROT,expresses[lastExp].get(Ghostie::EYELID_RU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_RU_ROT) - expresses[lastExp].get(Ghostie::EYELID_RU_ROT)) * (delta / 0.15)));
 		}
 		
-		pose.draw(0,0,500,clock.getElapsedTime().asSeconds());
+		pose.draw(clock.getElapsedTime().asSeconds());
 		
 		// Done
 		render::drawView();

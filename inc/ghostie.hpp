@@ -1,9 +1,13 @@
 #ifndef GHOSTIE_INCLUDED
-	#include "floatset.hpp"
+	#include "character.hpp"
 	
-	class Ghostie: public FloatSet{
+	class Ghostie: public Character{
 		public:
 			enum Val{
+				X,
+				Y,
+				SIZE,
+				
 				BODY_SPEED,
 				
 				SHELL_SCALE,
@@ -65,7 +69,8 @@
 			ParticleStyle getStyle() const;
 			void setStyle(ParticleStyle newStyle);
 			
-			void draw(float x,float y,float size,float time) const;
+			FloatSet *allocFloatSet(FloatSet *ref);
+			void draw(float time) const;
 			
 		private:
 			float randVals[RAND_VAL_COUNT];

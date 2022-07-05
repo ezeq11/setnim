@@ -1,19 +1,6 @@
-#include <cstdlib>
+#include <cstddef>
 
 #include "floatset.hpp"
-
-float FloatSet::randNormal(){
-	return (float)rand() / (float)RAND_MAX;
-}
-
-float FloatSet::randCenteredNormal(){
-	return randNormal() * 2.0 - 1.0;
-}
-
-FloatSet::FloatSet(unsigned int size)
-:count(size),vals(new float[size]()){
-	
-}
 
 FloatSet::FloatSet(unsigned int size,const FloatSet *ref)
 :count(size),vals(new float[size]()){

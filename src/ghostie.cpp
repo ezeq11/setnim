@@ -34,7 +34,7 @@ void Ghostie::init(){
 }
 
 Ghostie::Ghostie()
-:FloatSet(VAL_COUNT),style(PARTICLE_STYLE_NORMAL){
+:Character(VAL_COUNT,NULL),style(PARTICLE_STYLE_NORMAL){
 	set(BODY_SPEED,1.0);
 	
 	randVals[RAND_EYE_L_POS] = randCenteredNormal() / 20.0;
@@ -61,8 +61,16 @@ void Ghostie::setStyle(ParticleStyle newStyle){
 	style = newStyle;
 }
 
-void Ghostie::draw(float x,float y,float size,float time) const{
+FloatSet *Ghostie::allocFloatSet(FloatSet *ref){
+	return new FloatSet(VAL_COUNT,ref);
+}
+
+void Ghostie::draw(float time) const{
 	using namespace render;
+	
+	float x = get(X);
+	float y = get(Y);
+	float size = get(SIZE);
 	
 	switch(style){
 		case PARTICLE_STYLE_NORMAL:
