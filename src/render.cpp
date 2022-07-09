@@ -14,9 +14,9 @@
 #define SEQUENCE_HEIGHT 15
 #define SEQUENCE_BAR_WIDTH 18
 
-#define CHARACTER_HEIGHT 20
+#define RENDERABLE_HEIGHT 20
 
-#define VIEW_TOP_BOTTOM_PADDING (SCENE_HEIGHT + CHARACTER_HEIGHT + SCROLL_HEIGHT + SEQUENCE_HEIGHT)
+#define VIEW_TOP_BOTTOM_PADDING (SCENE_HEIGHT + RENDERABLE_HEIGHT + SCROLL_HEIGHT + SEQUENCE_HEIGHT)
 
 namespace render{
 	// Variables --------------------------------------------------
@@ -27,7 +27,7 @@ namespace render{
 	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted;
 	sf::RectangleShape scrollBackground,scrollBar;
 	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
-	sf::RectangleShape characterBackground;
+	sf::RectangleShape RenderableBackground;
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -111,8 +111,8 @@ namespace render{
 		sequenceBarCursor.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT / 2.0));
 		sequenceBarCursor.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
 		
-		// Character
-		characterBackground.setFillColor(sf::Color(80,80,80,0xff));
+		// Renderables
+		RenderableBackground.setFillColor(sf::Color(80,80,80,0xff));
 		
 		return true;
 	}
@@ -156,10 +156,10 @@ namespace render{
 		sequenceBackground.setPosition(left,top - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
 		window->draw(sequenceBackground);
 		
-		// Characters
-		characterBackground.setSize(sf::Vector2f(winWidth,CHARACTER_HEIGHT));
-		characterBackground.setPosition(left,top - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - CHARACTER_HEIGHT);
-		window->draw(characterBackground);
+		// Renderables
+		RenderableBackground.setSize(sf::Vector2f(winWidth,RENDERABLE_HEIGHT));
+		RenderableBackground.setPosition(left,top - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - RENDERABLE_HEIGHT);
+		window->draw(RenderableBackground);
 	}
 	
 	void drawSceneMarker(bool highlighted,int x){
@@ -200,9 +200,9 @@ namespace render{
 		}
 	}
 	
-	void drawCharMarker(bool highlighted,int x){
+	void drawRenderableMarker(bool highlighted,int x){
 		float scrX = x * (SCENE_MARKER_WIDTH + SCENE_MARKER_MARGIN + SCENE_MARKER_MARGIN);
-		float scrY = winHeight / 2.0 - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - CHARACTER_HEIGHT;
+		float scrY = winHeight / 2.0 - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - RENDERABLE_HEIGHT;
 		
 		if(highlighted){
 			sceneMarkerHighlighted.setPosition(scrX,scrY);

@@ -9,7 +9,7 @@
 
 #include "render.hpp"
 #include "ghostie.hpp"
-#include "floatsetsequence.hpp"
+#include "setsequence.hpp"
 #include "timeView.hpp"
 #include "animation.hpp"
 
@@ -29,7 +29,7 @@ enum Expression{
 	EXP_COUNT
 };
 
-Ghostie expresses[EXP_COUNT];
+Ghostie::Char expresses[EXP_COUNT];
 
 sf::RenderWindow window;
 
@@ -79,6 +79,7 @@ int main(){
 	Animation anim;
 	
 	FloatSet *lastSelection = NULL;
+	unsigned int currentProperty = 0;
 	
 	
 	
@@ -88,7 +89,7 @@ int main(){
 	Expression lastExp = EXP_BLANK;
 	Expression currExp = EXP_BLANK;
 	
-	Ghostie pose;
+	Ghostie::Char pose;
 	
 	pose.set(Ghostie::X,0.0);
 	pose.set(Ghostie::Y,0.0);
@@ -169,6 +170,8 @@ int main(){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
 			isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
+			
+			if(anim.currentSequence())
 			
 			switch(event.type){
 				case sf::Event::Closed:

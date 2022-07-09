@@ -4,7 +4,7 @@
 	
 	template <typename T,T nullValue>
 	class Iterable{
-		private:
+		protected:
 			typename std::list<T> iterables;
 			typename std::list<T>::iterator p;
 			
@@ -14,7 +14,7 @@
 				
 			}
 			
-			void forAll(void (*action)(T,unsigned int,bool)){
+			void forAll(void (*action)(T,unsigned int,bool)) const{
 				unsigned int i = 0;
 				
 				for(typename std::list<T>::iterator it = iterables.begin();it != iterables.end();++it){
@@ -23,15 +23,19 @@
 				}
 			}
 			
-			unsigned int length(){
+			void removeIf(bool (*pred)(T)){
+				iterables.remove_if(pred);
+			}
+			
+			unsigned int length() const{
 				return iterables.size();
 			}
 			
-			unsigned int pos(){
+			unsigned int pos() const{
 				return std::distance(iterables.begin(),p);
 			}
 			
-			T current(){
+			T current() const{
 				return p == iterables.end() ? nullValue : *p;
 			}
 			
@@ -99,6 +103,43 @@
 				return current();
 			}
 	};
+	
+	template <typename T>
+	class PointerIterable: public Iterable<T *,(T *)NULL>{
+		~PointerIterable(){
+			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
+				delete *it;
+			}
+		}
+		
+		void removeIf(bool (*pred)(T *)){
+			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();){
+				if(pred(*it)){
+					delete *it;
+					it = iterables.erase(it);
+				}else{
+					++it;
+				}
+			}
+		}
+		
+		T *remove(){
+			if(p == iterables.end()){
+				return current();
+			}
+			
+			delete *p;
+			return Iterable::remove();
+		}
+		
+		T *clear(){
+			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
+				delete *it;
+			}
+			
+			return Iterable::clear();
+		}
+	}
 	
 	#define ITERABLE_INCLUDED
 #endif

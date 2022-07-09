@@ -1,164 +1,239 @@
 #include "animation.hpp"
 #include "render.hpp"
 
-void charSceneAddBefore(Character *c,unsigned int i,bool isCurrent){
-	c->addBefore(new FloatSetSequence(c));
-}
-
-void charSceneAddAfter(Character *c,unsigned int i,bool isCurrent){
-	c->addAfter(new FloatSetSequence(c));
-}
-
-void charSceneForward(Character *c,unsigned int i,bool isCurrent){
-	c->forward();
-}
-
-void charSceneBackward(Character *c,unsigned int i,bool isCurrent){
-	c->backward();
-}
-
-void charSceneRemove(Character *c,unsigned int i,bool isCurrent){
-	delete c->current();
-	c->remove();
-}
-
-void charSceneClear(Character *c,unsigned int i,bool isCurrent){
-	while(c->length() > 0){
-		charSceneRemove(c,0,false);
-	}
-}
-
-void Animation::charPrepare(Character *newChar){
-	if(newChar == NULL){
-		return;
-	}
+SceneRenderSeq::SceneRenderSeq(Renderable *newR,SetSequence<float> *newS)
+:r(newR),s(newS){
 	
-	charSceneClear(newChar,0,false);
+}
+
+SceneRenderSeq::~SceneRenderSeq(){
+	delete s;
+}
+
+Renderable *SceneRenderSeq::getRenderable() const{
+	return r;
+}
+
+SetSequence<float> *SceneRenderSeq::getSeq() const{
+	return s;
+}
+
+// ====================================================================================
+
+Scene::Scene(float newTime)
+:time(newTime){
 	
-	for(unsigned int i = 0;i < sceneLengths.length();++i){
-		if(i < sceneLengths.pos()){
-			charSceneAddBefore(newChar,0,false);
-		}else{
-			charSceneAddAfter(newChar,0,false);
-		}
-	}
 }
 
-Animation::~Animation(){
-	sceneClear();
-	charClear();
+float Scene::getTime() const{
+	return time;
 }
 
-void Animation::charAddBefore(Character *newChar){
-	charPrepare(newChar);
-	characters.addBefore(newChar);
+void Scene::setTime(float newTime){
+	time = newTime;
 }
 
-void Animation::charAddAfter(Character *newChar){
-	charPrepare(newChar);
-	characters.addAfter(newChar);
+// ====================================================================================
+
+void Animation::renderablesAddBefore(Renderable *newRenderable){
+	renderables.addBefore(newRenderable);
 }
 
-void Animation::charForward(){
-	characters.forward();
+void Animation::renderablesAddAfter(Renderable *newRenderable){
+	renderables.addAfter(newRenderable);
 }
 
-void Animation::charBackward(){
-	characters.backward();
+void Animation::renderablesForward(){
+	renderables.forward();
 }
 
-void Animation::charRemove(){
-	if(characters.current() == NULL){
-		return;
-	}
+void Animation::renderablesBackward(){
+	renderables.backward();
+}
+
+// -------------------------------
+
+Renderable *renderableToRemove;
+
+bool seqRemoveRenderable(SceneRenderSeq *s){
+	return s->getRenderable() == renderableToRemove;
+}
+
+void sceneRemoveRenderable(Scene *s,unsigned int i,bool isCurrent){
+	s->removeIf(&seqRemoveRenderable);
+}
+
+void Animation::renderablesRemove(){
+	renderableToRemove = renderables.current();
+	scenes.forAll(&sceneRemoveRenderable);
 	
-	charSceneClear(characters.current(),0,false);
-	delete characters.current();
-	
-	characters.remove();
+	renderables.remove();
 }
 
-void Animation::charClear(){
-	while(characters.length() > 0){
-		charRemove();
-	}
+// -------------------------------
+
+void sceneClear(Scene *s,unsigned int i,bool isCurrent){
+	s->clear();
 }
 
-int charMarkerCurrentPos;
-
-void charDrawMarker(Character *c,unsigned int i,bool isCurrent){
-	render::drawCharMarker(isCurrent,(int)i - charMarkerCurrentPos);
+void Animation::renderablesClear(){
+	scenes.forAll(&sceneClear);
+	renderables.clear();
 }
 
-void Animation::charDrawMarkers(){
-	charMarkerCurrentPos = characters.pos();
-	characters.forAll(charDrawMarker);
-}
+// ------------------------------------------------------------------------------------
 
 void Animation::sceneAddBefore(float length){
-	characters.forAll(charSceneAddBefore);
-	sceneLengths.addBefore(new float[1]{length});
+	scenes.addBefore(new Scene(length));
 }
 
 void Animation::sceneAddAfter(float length){
-	characters.forAll(charSceneAddAfter);
-	sceneLengths.addAfter(new float[1]{length});
+	scenes.addAfter(new Scene(length));
 }
 
 void Animation::sceneForward(){
-	characters.forAll(charSceneForward);
-	sceneLengths.forward();
+	scenes.forward();
 }
 
 void Animation::sceneBackward(){
-	characters.forAll(charSceneBackward);
-	sceneLengths.backward();
+	scenes.backward();
 }
 
 void Animation::sceneRemove(){
-	characters.forAll(charSceneRemove);
-	
-	delete sceneLengths.current();
-	sceneLengths.remove();
+	scenes.remove();
 }
 
 void Animation::sceneClear(){
-	while(sceneLengths.length() > 0){
-		sceneRemove();
+	scenes.clear();
+}
+
+float Animation::sceneGetLength() const{
+	if(scenes.current() == NULL){
+		return 0.0;
 	}
-}
-
-int sceneMarkerCurrentPos;
-
-void sceneDrawMarker(float *length,unsigned int i,bool isCurrent){
-	render::drawSceneMarker(isCurrent,(int)i - sceneMarkerCurrentPos);
-}
-
-void Animation::sceneDrawMarkers(){
-	sceneMarkerCurrentPos = sceneLengths.pos();
-	sceneLengths.forAll(sceneDrawMarker);
-}
-
-float Animation::sceneGetLength(){
-	return sceneLengths.current() == NULL ? 0.0 : *(sceneLengths.current());
+	
+	return scenes.current()->getTime();
 }
 
 void Animation::sceneSetLength(float newLength){
-	if(sceneLengths.current() == NULL){
+	if(scenes.current() == NULL){
 		return;
 	}
 	
-	sceneLengths.current()[0] = newLength;
+	scenes.current()->setTime(newLength);
 }
 
-const Character *Animation::currentCharacter(){
-	return characters.current();
+// -------------------------------
+
+float totalTime;
+
+void sceneSumTime(Scene *s,unsigned int i,bool isCurrent){
+	totalTime += s->getTime();
 }
 
-FloatSetSequence *Animation::currentSequence(){
-	if(characters.current() == NULL){
+float Animation::length() const{
+	totalTime = 0.0;
+	scenes.forAll(&sceneSumTime);
+	
+	return totalTime;
+}
+
+// ------------------------------------------------------------------------------------
+
+void Animation::seqAddBefore(){
+	if(renderables.current() == NULL || scenes.current() == NULL){
+		return;
+	}
+	
+	scenes.current()->addBefore(new SceneRenderSeq(renderables.current(),renderables.current()->allocNewSeq()));
+}
+
+void Animation::seqAddAfter(){
+	if(renderables.current() == NULL || scenes.current() == NULL){
+		return;
+	}
+	
+	scenes.current()->addAfter(new SceneRenderSeq(renderables.current(),renderables.current()->allocNewSeq()));
+}
+
+void Animation::seqForward(){
+	if(scenes.current() == NULL){
+		return;
+	}
+	
+	scene.current()->forward();
+}
+
+void Animation::seqBackward(){
+	if(scenes.current() == NULL){
+		return;
+	}
+	
+	scene.current()->backward();
+}
+
+void Animation::seqRemove(){
+	if(scenes.current() == NULL){
+		return;
+	}
+	
+	scene.current()->remove();
+}
+
+void Animation::seqClear(){
+	if(scenes.current() == NULL){
+		return;
+	}
+	
+	scene.current()->clear();
+}
+
+SetSequence<float> *Animation::seqCurrent() const{
+	if(scenes.current() == NULL || scenes.current()->current() == NULL){
 		return NULL;
 	}
 	
-	return characters.current()->current();
+	return scenes.current()->current()->getSeq();
+}
+
+// ------------------------------------------------------------------------------------
+
+int currentMarkerPos;
+
+void drawRenderableMarker(Renderable *r,unsigned int i,bool isCurrent){
+	render::drawRenderableMarker(isCurrent,(int)i - currentMarkerPos);
+}
+
+void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
+	render::drawSceneMarker(isCurrent,(int)i - currentMarkerPos);
+}
+
+void Animation::drawMarkers() const{
+	currentMarkerPos = renderables.pos();
+	renderables.forAll(&drawRenderableMarker);
+	
+	currentMarkerPos = scenes.pos();
+	scenes.forAll(&drawSceneMarker);
+}
+
+// -------------------------------
+
+bool stillCurrentRenderableFrame;
+
+void drawSeqFrame(SceneRenderSeq *s,unsigned int i,bool isCurrent){
+	if(isCurrent && stillCurrentRenderableFrame){
+		
+	}else{
+		s->getSeq()->bufferInstant(time);
+		s->getRenderable()->draw(time);
+	}
+}
+
+void Animation::render(float time,bool stillActiveFrame) const{
+	if(scenes.current() == NULL){
+		return;
+	}
+	
+	stillCurrentRenderableFrame = stillActiveFrame;
+	scenes.current()->forAll(&drawSeqFrame);
 }

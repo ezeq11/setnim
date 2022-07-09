@@ -17,7 +17,7 @@
 		void drawUIBackground(float scrollBegin,float scrollEnd);
 		void drawSceneMarker(bool highlighted,int x);
 		void drawSequenceBar(SequenceBar type,float x);
-		void drawCharMarker(bool highlighted,int x);
+		void drawRenderableMarker(bool highlighted,int x);
 		
 		namespace view{
 			void clear();

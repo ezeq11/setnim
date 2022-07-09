@@ -1,24 +1,46 @@
 #ifndef ANIMATION_INCLUDED
-	#include "character.hpp"
+	#include "iterable.hpp"
+	#include "renderable.hpp"
+	#include "setsequence.hpp"
+	
+	class SceneRenderSeq{
+		private:
+			Renderable *r;
+			SetSequence<float> *s;
+			
+		public:
+			SceneRenderSeq(Renderable *newR,SetSequence<float> *newS);
+			~SceneRenderSeq();
+			
+			Renderable *getRenderable() const;
+			SetSequence<float> *getSeq() const;
+	};
+	
+	class Scene: public PointerIterable<SceneRenderSeq>{
+		private:
+			float time;
+			
+		public:
+			Scene(float newTime);
+			
+			float getTime() const;
+			void setTime(float newTime);
+	};
 	
 	class Animation{
 		private:
-			Iterable<Character *,(Character *)NULL> characters;
-			Iterable<float *,(float *)NULL> sceneLengths;
-			
-			void charPrepare(Character *newChar);
+			PointerIterable<Renderable> renderables;
+			PointerIterable<Scene> scenes;
 			
 		public:
-			~Animation();
+			void renderablesAddBefore(Renderable *newRenderable);
+			void renderablesAddAfter(Renderable *newRenderable);
+			void renderablesForward();
+			void renderablesBackward();
+			void renderablesRemove();
+			void renderablesClear();
 			
-			void charAddBefore(Character *newChar);
-			void charAddAfter(Character *newChar);
-			void charForward();
-			void charBackward();
-			void charRemove();
-			void charClear();
 			
-			void charDrawMarkers();
 			
 			void sceneAddBefore(float length);
 			void sceneAddAfter(float length);
@@ -27,13 +49,26 @@
 			void sceneRemove();
 			void sceneClear();
 			
-			void sceneDrawMarkers();
-			
-			float sceneGetLength();
+			float sceneGetLength() const;
 			void sceneSetLength(float newLength);
 			
-			const Character *currentCharacter();
-			FloatSetSequence *currentSequence();
+			float length() const;
+			
+			
+			
+			void seqAddBefore();
+			void seqAddAfter();
+			void seqForward();
+			void seqBackward();
+			void seqRemove();
+			void seqClear();
+			
+			SetSequence<float> *seqCurrent() const;
+			
+			
+			
+			void drawMarkers() const;
+			void render(float time,bool stillActiveFrame) const;
 	};
 	
 	#define ANIMATION_INCLUDED
