@@ -92,17 +92,17 @@ int main(){
 	
 	pose.set(Ghostie::X,0.0);
 	pose.set(Ghostie::Y,0.0);
-	pose.set(Ghostie::SIZE,500.0);
+	pose.set(Ghostie::SIZE,0.5);
 	
 	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_ROT,-30.0);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_ROT,-30.0 / 360.0);
 	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_ROT,30.0);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_ROT,30.0 / 360.0);
 	
 	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_POS,0.3);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_ROT,30.0);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_ROT,30.0 / 360.0);
 	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_POS,0.3);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_ROT,-30.0);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_ROT,-30.0 / 360.0);
 	
 	expresses[EXP_BORED].set(Ghostie::EYELID_LU_POS,0.2);
 	expresses[EXP_BORED].set(Ghostie::EYELID_RU_POS,0.2);
@@ -125,7 +125,7 @@ int main(){
 		
 		faceRot = ((float)sf::Mouse::getPosition(window).y / (float)window.getSize().y) * 2.0 - 1.0;
 		faceRot = faceRot < -1.0 ? -1.0 : (faceRot > 1.0 ? 1.0 : faceRot);
-		faceRot *= 90.0;
+		faceRot *= 90.0 / 360.0;
 		
 		if(faceDist > 0.0){
 			faceRot *= -1.0;
@@ -200,7 +200,7 @@ int main(){
 								}
 							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 								if(isCtrlDown){
-									anim.sceneAddBefore(0.5);
+									anim.sceneAddBefore(50);
 								}else{
 									anim.sceneBackward();
 								}
@@ -219,7 +219,7 @@ int main(){
 								}
 							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 								if(isCtrlDown){
-									anim.sceneAddAfter(0.5);
+									anim.sceneAddAfter(50);
 								}else{
 									anim.sceneForward();
 								}

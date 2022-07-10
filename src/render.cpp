@@ -22,7 +22,7 @@ namespace render{
 	// Variables --------------------------------------------------
 	sf::RenderWindow *window;
 	float winWidth,winHeight;
-	sf::Vector2u dimension;
+	sf::Vector2u dimensions;
 	
 	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted;
 	sf::RectangleShape scrollBackground,scrollBar;
@@ -42,22 +42,22 @@ namespace render{
 	}
 	
 	// Functions --------------------------------------------------
-	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimension){
+	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions){
 		// Render Containers ----------------
 		window = &renderWindow;
-		dimension = innerDimension;
+		dimensions = innerDimensions;
 		
-		if(!view::view.create(dimension.x,dimension.y)){
+		if(!view::view.create(dimensions.x,dimensions.y)){
 			return false;
 		}
 		
-		if(!view::temp::viewTemp.create(dimension.x,dimension.y)){
+		if(!view::temp::viewTemp.create(dimensions.x,dimensions.y)){
 			return false;
 		}
 		
 		view::view.setSmooth(true);
 		
-		sf::View innerView = sf::View(sf::Vector2f(0.0,0.0),sf::Vector2f(dimension));
+		sf::View innerView = sf::View(sf::Vector2f(0.0,0.0),sf::Vector2f(dimensions));
 		
 		view::view.setView(innerView);
 		view::temp::viewTemp.setView(innerView);
@@ -72,7 +72,7 @@ namespace render{
 		
 		// UI Elements ----------------------
 		// View Bounds
-		sf::Vector2f viewBoundsSize = sf::Vector2f(dimension.x - 10,dimension.y - 10);
+		sf::Vector2f viewBoundsSize = sf::Vector2f(dimensions.x - 10,dimensions.y - 10);
 		
 		view::viewBounds.setSize(viewBoundsSize);
 		view::viewBounds.setOrigin(viewBoundsSize / 2.0f);
@@ -121,8 +121,12 @@ namespace render{
 		winWidth = window->getView().getSize().x;
 		winHeight = window->getView().getSize().y;
 		
-		float scale = (winHeight - VIEW_TOP_BOTTOM_PADDING) / dimension.y;
+		float scale = (winHeight - VIEW_TOP_BOTTOM_PADDING) / dimensions.y;
 		view::viewSprite.setScale(sf::Vector2f(scale,scale));
+	}
+	
+	sf::Vector2u innerDimensions(){
+		return dimensions;
 	}
 	
 	void clear(){

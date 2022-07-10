@@ -12,22 +12,22 @@
 				
 			}
 			
-			virtual void add(float time) = 0;
+			virtual void add(temporal::val time) = 0;
 			
-			virtual void select(float time) = 0;
+			virtual void select(temporal::val time) = 0;
 			virtual void deselect() = 0;
 			
 			virtual Set<type> *current() const = 0;
 			
 			virtual void remove() = 0;
-			virtual void move(float newTime) = 0;
+			virtual void move(temporal::val newTime) = 0;
 			
-			virtual void bufferInstant(float time) = 0;
-			virtual void drawBar(float begin,float end) = 0;
+			virtual void bufferInstant(temporal::val time) = 0;
+			virtual void drawBar(temporal::val begin,temporal::val end) = 0;
 	};
 	
 	template <unsigned int size>
-	class FloatSetSequence: public SetSequence<float>{
+	class NormalizedInt16SetSequence: public SetSequence<float>{
 		public:
 			enum Transition{
 				TRANSITION_X,
@@ -47,25 +47,24 @@
 				TRANSITION_COUNT
 			};
 			
-			FloatSetSequence(FloatSet<size> *newBuffer)
-			:sets(),selected(sets.end()),lastSelected(sets.end()),buffer(0.0,newBuffer){
+			NormalizedInt16SetSequence(NormalizedInt16Set<size> *newBuffer)
+			:sets(),selected(sets.end()),buffer(0,newBuffer){
 				
 			}
 			
-			~FloatSetSequence(){
+			~NormalizedInt16SetSequence(){
 				for(typename std::list<TimedContainer *>::iterator it = sets.begin();it != sets.end();++it){
 					delete (*it)->getSet();
 					delete *it;
 				}
 			}
 			
-			void add(float time){
-				sets.insert(find(time),new TimedContainer(time,new FloatSet<size>()));
+			void add(temporal::val time){
+				sets.insert(find(time),new TimedContainer(time,new NormalizedInt16Set<size>()));
 			}
 			
-			void select(float time){
-				lastSelected = selected;
-				
+			void select(temporal::val time){
+				typename std::list<TimedContainer *>::iterator lastSelected = selected;
 				typename std::list<TimedContainer *>::iterator it = find(time);
 				
 				if(it == sets.begin()){
@@ -101,7 +100,7 @@
 				selected = sets.end();
 			}
 			
-			void move(float newTime){
+			void move(temporal::val newTime){
 				if(selected == sets.end()){
 					return;
 				}
@@ -116,7 +115,7 @@
 				selected = --newPosition;
 			}
 			
-			void bufferInstant(float time){
+			void bufferInstant(temporal::val time){
 				typename std::list<TimedContainer *>::iterator it = find(time);
 				
 				if(it == sets.begin()){
@@ -130,9 +129,9 @@
 				buffer.interpolateFrom(*begin,*end);
 			}
 			
-			#define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,((*it)->getTime() - begin) / (end - begin))
+			#define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,temporal::toFloat((*it)->getTime() - begin) / temporal::toFloat(end - begin))
 			
-			void drawBar(float begin,float end){
+			void drawBar(temporal::val begin,temporal::val end){
 				typename std::list<TimedContainer *>::iterator it = find(begin);
 				
 				if(it != sets.begin()){
@@ -154,20 +153,20 @@
 		private:
 			class TimedContainer{
 				public:
-					TimedContainer(float newTime,FloatSet<size> *newSet)
+					TimedContainer(temporal::val newTime,NormalizedInt16Set<size> *newSet)
 					:time(newTime),set(newSet),transitions{}{
 						
 					}
 					
-					float getTime() const{
+					temporal::val getTime() const{
 						return time;
 					}
 					
-					void setTime(float newTime){
+					void setTime(temporal::val newTime){
 						time = newTime;
 					}
 					
-					FloatSet<size> *getSet() const{
+					NormalizedInt16Set<size> *getSet() const{
 						return set;
 					}
 					
@@ -184,7 +183,7 @@
 							return;
 						}
 						
-						float deltaT = (time - beginning.time) / (end.time - beginning.time);
+						float deltaT = temporal::toFloat(time - beginning.time) / temporal::toFloat(end.time - beginning.time);
 						float deltaV = end.set->get(i) - beginning.set->get(i);
 						
 						set->set(i,beginning.set->get(i) + interpolate(transitions[i],deltaT) * deltaV);
@@ -196,7 +195,7 @@
 						}
 						
 						float deltaT,deltaV;
-						deltaT = (time - beginning.time) / (end.time - beginning.time);
+						deltaT = temporal::toFloat(time - beginning.time) / temporal::toFloat(end.time - beginning.time);
 						
 						for(unsigned int i = 0;i < size;++i){
 							deltaV = end.set->get(i) - beginning.set->get(i);
@@ -206,9 +205,9 @@
 					}
 					
 				private:
-					float time;
+					temporal::val time;
 					
-					FloatSet<size> *set;
+					NormalizedInt16Set<size> *set;
 					Transition transitions[size];
 					
 					float interpolate(Transition t,float x){
@@ -259,11 +258,11 @@
 			};
 			
 			typename std::list<TimedContainer *> sets;
-			typename std::list<TimedContainer *>::iterator selected,lastSelected;
+			typename std::list<TimedContainer *>::iterator selected;
 			
 			TimedContainer buffer;
 			
-			typename std::list<TimedContainer *>::iterator find(float time){
+			typename std::list<TimedContainer *>::iterator find(temporal::val time){
 				typename std::list<TimedContainer *>::iterator it = sets.begin();
 				
 				while(it != sets.end() && (*it)->getTime() < time){

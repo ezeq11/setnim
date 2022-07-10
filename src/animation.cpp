@@ -20,16 +20,16 @@ SetSequence<float> *SceneRenderSeq::getSeq() const{
 
 // ====================================================================================
 
-Scene::Scene(float newTime)
+Scene::Scene(temporal::val newTime)
 :time(newTime){
 	
 }
 
-float Scene::getTime() const{
+temporal::val Scene::getTime() const{
 	return time;
 }
 
-void Scene::setTime(float newTime){
+void Scene::setTime(temporal::val newTime){
 	time = newTime;
 }
 
@@ -83,11 +83,11 @@ void Animation::renderablesClear(){
 
 // ------------------------------------------------------------------------------------
 
-void Animation::sceneAddBefore(float length){
+void Animation::sceneAddBefore(temporal::val length){
 	scenes.addBefore(new Scene(length));
 }
 
-void Animation::sceneAddAfter(float length){
+void Animation::sceneAddAfter(temporal::val length){
 	scenes.addAfter(new Scene(length));
 }
 
@@ -107,15 +107,15 @@ void Animation::sceneClear(){
 	scenes.clear();
 }
 
-float Animation::sceneGetLength() const{
+temporal::val Animation::sceneGetLength() const{
 	if(scenes.current() == NULL){
-		return 0.0;
+		return 0;
 	}
 	
 	return scenes.current()->getTime();
 }
 
-void Animation::sceneSetLength(float newLength){
+void Animation::sceneSetLength(temporal::val newLength){
 	if(scenes.current() == NULL){
 		return;
 	}
@@ -125,14 +125,14 @@ void Animation::sceneSetLength(float newLength){
 
 // -------------------------------
 
-float totalTime;
+temporal::val totalTime;
 
 void sceneSumTime(Scene *s,unsigned int i,bool isCurrent){
 	totalTime += s->getTime();
 }
 
-float Animation::length() const{
-	totalTime = 0.0;
+temporal::val Animation::length() const{
+	totalTime = 0;
 	scenes.forAll(&sceneSumTime);
 	
 	return totalTime;

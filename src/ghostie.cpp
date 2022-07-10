@@ -75,15 +75,18 @@ namespace Ghostie{
 	}
 	
 	SetSequence<float> *Char::allocNewSeq(){
-		return new FloatSetSequence<VAL_COUNT>(this);
+		return new NormalizedInt16SetSequence<VAL_COUNT>(this);
 	}
 	
 	void Char::draw(float time) const{
 		using namespace render;
 		
-		float x = get(X);
-		float y = get(Y);
-		float size = get(SIZE);
+		float rW = render::innerDimensions().x;
+		float rH = render::innerDimensions().y;
+		
+		float x = get(X) * rW;
+		float y = get(Y) * rH;
+		float size = get(SIZE) * (rW < rH ? rW : rH);
 		
 		switch(style){
 			case PARTICLE_STYLE_NORMAL:
@@ -107,8 +110,8 @@ namespace Ghostie{
 		body->setFillColor(sf::Color(225,225,225,0xff));
 		body->setScale((size * 0.75 / 4.0) / 2.0,(size / 4.0) / 2.0);
 		
-		view::draw(*body,sf::Transform().rotate(get(HAND_L_ROT)).translate(x - size / 8.0,y - get(HAND_L_POS) * size * 0.75));
-		view::draw(*body,sf::Transform().rotate(get(HAND_R_ROT)).translate(x + size / 8.0,y - get(HAND_R_POS) * size * 0.75));
+		view::draw(*body,sf::Transform().rotate(get(HAND_L_ROT) * 360.0).translate(x - size / 8.0,y - get(HAND_L_POS) * size * 0.75));
+		view::draw(*body,sf::Transform().rotate(get(HAND_R_ROT) * 360.0).translate(x + size / 8.0,y - get(HAND_R_POS) * size * 0.75));
 		
 		// Body -------------------------------
 		// bodyNormal.setFillColor(sf::Color(150,150,150,75.0));
@@ -117,7 +120,7 @@ namespace Ghostie{
 		body->setFillColor(sf::Color(225,225,225,0xff));
 		body->setScale(1.0,1.0);
 		
-		view::draw(*body,sf::Transform().translate(x,y).scale(size * get(SHELL_SCALE) / 2.0,size * get(SHELL_SCALE) / 2.0).rotate(get(SHELL_ROT)));
+		view::draw(*body,sf::Transform().translate(x,y).scale(size * get(SHELL_SCALE) / 2.0,size * get(SHELL_SCALE) / 2.0).rotate(get(SHELL_ROT) * 360.0));
 		
 		float pd,px,py;
 		float factor,col;
@@ -169,10 +172,10 @@ namespace Ghostie{
 		// Upper Eyelids
 		upperEyeLid.setScale(sf::Vector2f(eyeWidth * 2.0,eyeHeight / 1.5));
 		
-		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_LU_POS))).rotate(get(EYELID_LU_ROT) + getR(RAND_EYELID_LU_ROT)));
-		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_RU_POS))).rotate(get(EYELID_RU_ROT) + getR(RAND_EYELID_RU_ROT)));
+		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_LU_POS))).rotate(get(EYELID_LU_ROT) * 360.0 + getR(RAND_EYELID_LU_ROT)));
+		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_RU_POS))).rotate(get(EYELID_RU_ROT) * 360.0 + getR(RAND_EYELID_RU_ROT)));
 		
 		// Face -------------------------------
-		view::drawTemp(sf::Transform().translate(x,y).rotate(get(FACE_ROT)).translate(size * 0.75 * get(FACE_DIST) / 2.0,0.0).rotate(-get(FACE_ROT) / 1.25));
+		view::drawTemp(sf::Transform().translate(x,y).rotate(get(FACE_ROT) * 360.0).translate(size * 0.75 * get(FACE_DIST) / 2.0,0.0).rotate(-get(FACE_ROT) * 360.0 / 1.25));
 	}
 }

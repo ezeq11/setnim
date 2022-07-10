@@ -64,7 +64,7 @@
 		
 		void init();
 		
-		class Char: public Renderable, public FloatSet<VAL_COUNT>{
+		class Char: public Renderable, public NormalizedInt16Set<VAL_COUNT>{
 			private:
 				float randVals[RAND_VAL_COUNT];
 				

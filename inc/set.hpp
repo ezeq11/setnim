@@ -1,4 +1,6 @@
 #ifndef SET_INCLUDED
+	#include "types.hpp"
+	
 	#define PI 3.14159265
 	
 	template <typename type>
@@ -17,12 +19,12 @@
 	};
 	
 	template <unsigned int size>
-	class FloatSet: public Set<float>{
+	class NormalizedInt16Set: public Set<float>{
 		private:
-			float vals[size];
+			normalizedInt16::val vals[size];
 			
 		public:
-			FloatSet()
+			NormalizedInt16Set()
 			:vals{}{
 				
 			}
@@ -32,11 +34,11 @@
 			}
 			
 			float get(unsigned int i) const{
-				return vals[i];
+				return normalizedInt16::toFloat(vals[i]);
 			}
 			
 			Set<float> *set(unsigned int i,float newVal){
-				vals[i] = newVal;
+				vals[i] = normalizedInt16::fromFloat(newVal);
 				
 				return (Set<float> *)this;
 			}

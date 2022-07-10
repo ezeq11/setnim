@@ -2,8 +2,10 @@
 	#include <SFML/Graphics.hpp>
 	
 	namespace render{
-		bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimension);
+		bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions);
+		
 		void resize();
+		sf::Vector2u innerDimensions();
 		
 		void clear();
 		

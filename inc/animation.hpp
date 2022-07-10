@@ -18,13 +18,13 @@
 	
 	class Scene: public PointerIterable<SceneRenderSeq>{
 		private:
-			float time;
+			temporal::val time;
 			
 		public:
-			Scene(float newTime);
+			Scene(temporal::val newTime);
 			
-			float getTime() const;
-			void setTime(float newTime);
+			temporal::val getTime() const;
+			void setTime(temporal::val newTime);
 	};
 	
 	class Animation{
@@ -42,17 +42,17 @@
 			
 			
 			
-			void sceneAddBefore(float length);
-			void sceneAddAfter(float length);
+			void sceneAddBefore(temporal::val length);
+			void sceneAddAfter(temporal::val length);
 			void sceneForward();
 			void sceneBackward();
 			void sceneRemove();
 			void sceneClear();
 			
-			float sceneGetLength() const;
-			void sceneSetLength(float newLength);
+			temporal::val sceneGetLength() const;
+			void sceneSetLength(temporal::val newLength);
 			
-			float length() const;
+			temporal::val length() const;
 			
 			
 			
