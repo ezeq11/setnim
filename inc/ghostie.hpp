@@ -82,9 +82,9 @@
 				ParticleStyle getStyle() const;
 				void setStyle(ParticleStyle newStyle);
 				
-				SetSequence<float> *allocNewSeq() const;
+				SetSequence<float> *allocNewSeq();
 				void draw(float time) const;
-		}
+		};
 	}
 	
 	#define GHOSTIE_INCLUDED

@@ -20,7 +20,7 @@
 				
 			}
 			
-			virtual SetSequence<float> *allocNewSeq() const = 0;
+			virtual SetSequence<float> *allocNewSeq() = 0;
 			virtual void draw(float time) const = 0;
 	};
 	

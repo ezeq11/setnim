@@ -8,9 +8,9 @@
 				
 			}
 			
-			virtual unsigned int count() = 0;
+			virtual unsigned int count() const = 0;
 			
-			virtual type get(unsigned int i) = 0;
+			virtual type get(unsigned int i) const = 0;
 			virtual Set<type> *set(unsigned int i,type newVal) = 0;
 			
 			virtual Set<type> *copyFrom(Set<type> *src) = 0;
@@ -23,15 +23,15 @@
 			
 		public:
 			FloatSet()
-			:vals({}){
+			:vals{}{
 				
 			}
 			
-			unsigned int count(){
+			unsigned int count() const{
 				return size;
 			}
 			
-			float get(unsigned int i){
+			float get(unsigned int i) const{
 				return vals[i];
 			}
 			

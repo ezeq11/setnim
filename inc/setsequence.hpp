@@ -8,7 +8,7 @@
 	template <typename type>
 	class SetSequence{
 		public:
-			virtual ~Sequence(){
+			virtual ~SetSequence(){
 				
 			}
 			
@@ -17,12 +17,13 @@
 			virtual void select(float time) = 0;
 			virtual void deselect() = 0;
 			
-			virtual Set<type> *current() = 0;
+			virtual Set<type> *current() const = 0;
 			
 			virtual void remove() = 0;
 			virtual void move(float newTime) = 0;
 			
 			virtual void bufferInstant(float time) = 0;
+			virtual void drawBar(float begin,float end) = 0;
 	};
 	
 	template <unsigned int size>
@@ -52,7 +53,7 @@
 			}
 			
 			~FloatSetSequence(){
-				for(std::list<TimedContainer *>::iterator it = sets.begin();it != sets.end();++it){
+				for(typename std::list<TimedContainer *>::iterator it = sets.begin();it != sets.end();++it){
 					delete (*it)->getSet();
 					delete *it;
 				}
@@ -65,7 +66,7 @@
 			void select(float time){
 				lastSelected = selected;
 				
-				std::list<TimedContainer *>::iterator it = find(time);
+				typename std::list<TimedContainer *>::iterator it = find(time);
 				
 				if(it == sets.begin()){
 					selected = sets.end();
@@ -109,14 +110,14 @@
 				moved->setTime(newTime);
 				
 				sets.erase(selected);
-				std::list<TimedContainer *>::iterator newPosition = find(newTime);
+				typename std::list<TimedContainer *>::iterator newPosition = find(newTime);
 				sets.insert(newPosition,moved);
 				
 				selected = --newPosition;
 			}
 			
 			void bufferInstant(float time){
-				std::list<TimedContainer *>::iterator it = find(time);
+				typename std::list<TimedContainer *>::iterator it = find(time);
 				
 				if(it == sets.begin()){
 					return;
@@ -132,7 +133,7 @@
 			#define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,((*it)->getTime() - begin) / (end - begin))
 			
 			void drawBar(float begin,float end){
-				std::list<TimedContainer *>::iterator it = find(begin);
+				typename std::list<TimedContainer *>::iterator it = find(begin);
 				
 				if(it != sets.begin()){
 					--it;
@@ -154,7 +155,7 @@
 			class TimedContainer{
 				public:
 					TimedContainer(float newTime,FloatSet<size> *newSet)
-					:time(newTime),set(newSet),transitions({}){
+					:time(newTime),set(newSet),transitions{}{
 						
 					}
 					
@@ -257,13 +258,13 @@
 					}
 			};
 			
-			std::list<TimedContainer *> sets;
-			std::list<TimedContainer *>::iterator selected,lastSelected;
+			typename std::list<TimedContainer *> sets;
+			typename std::list<TimedContainer *>::iterator selected,lastSelected;
 			
 			TimedContainer buffer;
 			
-			std::list<TimedContainer *>::iterator find(float time){
-				std::list<TimedContainer *>::iterator it = sets.begin();
+			typename std::list<TimedContainer *>::iterator find(float time){
+				typename std::list<TimedContainer *>::iterator it = sets.begin();
 				
 				while(it != sets.end() && (*it)->getTime() < time){
 					++it;

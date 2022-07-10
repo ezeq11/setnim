@@ -78,8 +78,7 @@ int main(){
 	
 	Animation anim;
 	
-	FloatSet *lastSelection = NULL;
-	unsigned int currentProperty = 0;
+	// unsigned int currentProperty = 0;
 	
 	
 	
@@ -154,14 +153,12 @@ int main(){
 		
 		render::drawUIBackground(timeView::getBegin(),timeView::getEnd());
 		
-		anim.sceneDrawMarkers();
+		anim.drawMarkers();
 		
-		if(anim.currentSequence() != NULL){
-			anim.currentSequence()->drawBar(timeView::getBegin(),timeView::getEnd());
+		if(anim.seqCurrent() != NULL){
+			anim.seqCurrent()->drawBar(timeView::getBegin(),timeView::getEnd());
 			render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
 		}
-		
-		anim.charDrawMarkers();
 		
 		window.display();
 		
@@ -171,7 +168,7 @@ int main(){
 			isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
-			if(anim.currentSequence())
+			// if(anim.seqCurrent())
 			
 			switch(event.type){
 				case sf::Event::Closed:
@@ -197,9 +194,9 @@ int main(){
 						case sf::Keyboard::Left:
 							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 								if(isCtrlDown){
-									anim.charAddBefore(new Ghostie());
+									anim.renderablesAddBefore(new Ghostie::Char());
 								}else{
-									anim.charBackward();
+									anim.renderablesBackward();
 								}
 							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 								if(isCtrlDown){
@@ -216,9 +213,9 @@ int main(){
 						case sf::Keyboard::Right:
 							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 								if(isCtrlDown){
-									anim.charAddAfter(new Ghostie());
+									anim.renderablesAddAfter(new Ghostie::Char());
 								}else{
-									anim.charForward();
+									anim.renderablesForward();
 								}
 							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 								if(isCtrlDown){
@@ -234,14 +231,14 @@ int main(){
 							break;
 						case sf::Keyboard::D:
 							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
-								anim.charRemove();
+								anim.renderablesRemove();
 								
 							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 								anim.sceneRemove();
 								
 							}else if(isCtrlDown){
-								if(anim.currentSequence() != NULL){
-									anim.currentSequence()->remove();
+								if(anim.seqCurrent() != NULL){
+									anim.seqCurrent()->remove();
 								}
 							}
 							
@@ -263,18 +260,18 @@ int main(){
 								float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
 								
 								if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-									if(anim.currentSequence() != NULL){
-										anim.currentSequence()->add(seqTime,NULL);
+									if(anim.seqCurrent() != NULL){
+										anim.seqCurrent()->add(seqTime);
 									}
 									
 								}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-									if(anim.currentSequence() != NULL){
-										anim.currentSequence()->move(seqTime);
+									if(anim.seqCurrent() != NULL){
+										anim.seqCurrent()->move(seqTime);
 									}
 									
 								}else{
-									if(anim.currentSequence() != NULL){
-										lastSelection = anim.currentSequence()->select(seqTime);
+									if(anim.seqCurrent() != NULL){
+										anim.seqCurrent()->select(seqTime);
 									}
 								}
 							}

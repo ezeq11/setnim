@@ -72,12 +72,12 @@ void Animation::renderablesRemove(){
 
 // -------------------------------
 
-void sceneClear(Scene *s,unsigned int i,bool isCurrent){
+void emptyScene(Scene *s,unsigned int i,bool isCurrent){
 	s->clear();
 }
 
 void Animation::renderablesClear(){
-	scenes.forAll(&sceneClear);
+	scenes.forAll(&emptyScene);
 	renderables.clear();
 }
 
@@ -161,7 +161,7 @@ void Animation::seqForward(){
 		return;
 	}
 	
-	scene.current()->forward();
+	scenes.current()->forward();
 }
 
 void Animation::seqBackward(){
@@ -169,7 +169,7 @@ void Animation::seqBackward(){
 		return;
 	}
 	
-	scene.current()->backward();
+	scenes.current()->backward();
 }
 
 void Animation::seqRemove(){
@@ -177,7 +177,7 @@ void Animation::seqRemove(){
 		return;
 	}
 	
-	scene.current()->remove();
+	scenes.current()->remove();
 }
 
 void Animation::seqClear(){
@@ -185,7 +185,7 @@ void Animation::seqClear(){
 		return;
 	}
 	
-	scene.current()->clear();
+	scenes.current()->clear();
 }
 
 SetSequence<float> *Animation::seqCurrent() const{
@@ -224,8 +224,8 @@ void drawSeqFrame(SceneRenderSeq *s,unsigned int i,bool isCurrent){
 	if(isCurrent && stillCurrentRenderableFrame){
 		
 	}else{
-		s->getSeq()->bufferInstant(time);
-		s->getRenderable()->draw(time);
+		// s->getSeq()->bufferInstant(time);
+		// s->getRenderable()->draw(time);
 	}
 }
 

@@ -74,7 +74,7 @@ namespace Ghostie{
 		style = newStyle;
 	}
 	
-	SetSequence<float> *Char::allocNewSeq() const{
+	SetSequence<float> *Char::allocNewSeq(){
 		return new FloatSetSequence<VAL_COUNT>(this);
 	}
 	

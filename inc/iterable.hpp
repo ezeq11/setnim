@@ -17,7 +17,7 @@
 			void forAll(void (*action)(T,unsigned int,bool)) const{
 				unsigned int i = 0;
 				
-				for(typename std::list<T>::iterator it = iterables.begin();it != iterables.end();++it){
+				for(typename std::list<T>::const_iterator it = iterables.begin();it != iterables.end();++it){
 					action(*it,i,it == p);
 					++i;
 				}
@@ -32,7 +32,7 @@
 			}
 			
 			unsigned int pos() const{
-				return std::distance(iterables.begin(),p);
+				return std::distance(iterables.begin(),(typename std::list<T>::const_iterator)p);
 			}
 			
 			T current() const{
@@ -106,40 +106,44 @@
 	
 	template <typename T>
 	class PointerIterable: public Iterable<T *,(T *)NULL>{
-		~PointerIterable(){
-			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
-				delete *it;
-			}
-		}
+		using Iterable<T *,(T *)NULL>::iterables;
+		using Iterable<T *,(T *)NULL>::p;
 		
-		void removeIf(bool (*pred)(T *)){
-			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();){
-				if(pred(*it)){
+		public:
+			~PointerIterable(){
+				for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
 					delete *it;
-					it = iterables.erase(it);
-				}else{
-					++it;
 				}
 			}
-		}
-		
-		T *remove(){
-			if(p == iterables.end()){
-				return current();
+			
+			void removeIf(bool (*pred)(T *)){
+				for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();){
+					if(pred(*it)){
+						delete *it;
+						it = iterables.erase(it);
+					}else{
+						++it;
+					}
+				}
 			}
 			
-			delete *p;
-			return Iterable::remove();
-		}
-		
-		T *clear(){
-			for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
-				delete *it;
+			T *remove(){
+				if(p == iterables.end()){
+					return Iterable<T *,(T *)NULL>::current();
+				}
+				
+				delete *p;
+				return Iterable<T *,(T *)NULL>::remove();
 			}
 			
-			return Iterable::clear();
-		}
-	}
+			T *clear(){
+				for(typename std::list<T *>::iterator it = iterables.begin();it != iterables.end();++it){
+					delete *it;
+				}
+				
+				return Iterable<T *,(T *)NULL>::clear();
+			}
+	};
 	
 	#define ITERABLE_INCLUDED
 #endif
