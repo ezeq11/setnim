@@ -1,46 +1,122 @@
 #include "animation.hpp"
 #include "render.hpp"
 
-SceneRenderSeq::SceneRenderSeq(Renderable *newR,SetSequence<float> *newS)
-:r(newR),s(newS){
+Scene::Scene(temporal::val newLength)
+:length(newLength){
 	
 }
 
-SceneRenderSeq::~SceneRenderSeq(){
-	delete s;
-}
-
-Renderable *SceneRenderSeq::getRenderable() const{
-	return r;
-}
-
-SetSequence<float> *SceneRenderSeq::getSeq() const{
-	return s;
-}
-
-// ====================================================================================
-
-Scene::Scene(temporal::val newTime)
-:time(newTime){
+Scene::Scene(FILE *in,Renderable *buffers,unsigned int bufferCount)
+:length(temporal::read(in)){
+	unsigned int seqCount = uInt32::read(in);
 	
+	for(unsigned int i = 0;i < seqCount;++i){
+		addBefore(new SetSequence(in,buffers,bufferCount));
+	}
+	
+	for(unsigned int i = 0;i < seqCount;++i){
+		backward();
+	}
+}
+
+FILE *fileIO;
+Renderable *bufferTable;
+unsigned int bufferTableSize;
+
+void writeSeq(SetSequence *s,unsigned int i,bool isCurrent){
+	s->write(fileIO,bufferTable,bufferTableSize);
+}
+
+Scene *Scene::write(FILE *out,Renderable *buffers,unsigned int bufferCount) const{
+	fileIO = out;
+	bufferTable = buffers;
+	bufferTableSize = bufferCount;
+	
+	temporal::write(out,length);
+	forAll(&writeSeq);
 }
 
 temporal::val Scene::getTime() const{
-	return time;
+	return length;
 }
 
-void Scene::setTime(temporal::val newTime){
-	time = newTime;
+void Scene::setTime(temporal::val newLength){
+	length = newLength;
 }
 
 // ====================================================================================
 
-void Animation::renderablesAddBefore(Renderable *newRenderable){
-	renderables.addBefore(newRenderable);
+Animation::Animation(){
+	
 }
 
-void Animation::renderablesAddAfter(Renderable *newRenderable){
-	renderables.addAfter(newRenderable);
+Animation::Animation(FILE *in){
+	// Renderables
+	unsigned int renderablesCount = uInt32::read(in);
+	bufferTable = new Renderable *[renderablesCount];
+	
+	for(unsigned int i = 0;i < renderablesCount;++i){
+		bufferTable[i] = new Renderable(in);
+		
+		renderables.addBefore(bufferTable[i]);
+	}
+	
+	for(unsigned int i = 0;i < renderablesCount;++i){
+		renderables.backward();
+	}
+	
+	// Scenes
+	unsigned int scenesCount = uInt32::read(in);
+	
+	for(unsigned int i = 0;i < scenesCount;++i){
+		scenes.addBefore(new Scene(in,bufferTable,renderablesCount));
+	}
+	
+	for(unsigned int i = 0;i < scenesCount;++i){
+		scenes.backward();
+	}
+	
+	delete[] bufferTable;
+}
+
+void writeRenderable(Renderable *r,unsigned int i,bool isCurrent){
+	r->write(fileIO);
+}
+
+void tableRenderable(Renderable *r,unsigned int i,bool isCurrent){
+	bufferTable[i] = r;
+}
+
+void writeScene(Scene *s,unsigned int i,bool isCurrent){
+	s->write(fileIO,bufferTable,bufferTableSize);
+}
+
+void Animation::write(FILE *out) const{
+	fileIO = out;
+	
+	// Renderables
+	uInt32::write(out,(uint32_t)renderables.length());
+	renderables.forAll(&writeRenderable);
+	
+	// Scenes
+	bufferTableSize = renderables.length();
+	bufferTable = new Renderable *[bufferTableSize];
+	renderables.forAll(&tableRenderable);
+	
+	uInt32::write(out,(uint32_t)scenes.length());
+	scenes.forAll(&writeScene);
+	
+	delete[] bufferTable;
+}
+
+// ------------------------------------------------------------------------------------
+
+void Animation::renderablesAddBefore(unsigned int renderIndex){
+	renderables.addBefore(new Renderable(renderIndex));
+}
+
+void Animation::renderablesAddAfter(unsigned int renderIndex){
+	renderables.addAfter(new Renderable(renderIndex));
 }
 
 void Animation::renderablesForward(){
@@ -55,8 +131,8 @@ void Animation::renderablesBackward(){
 
 Renderable *renderableToRemove;
 
-bool seqRemoveRenderable(SceneRenderSeq *s){
-	return s->getRenderable() == renderableToRemove;
+bool seqRemoveRenderable(SetSequence *s){
+	return s->getBuffer() == renderableToRemove;
 }
 
 void sceneRemoveRenderable(Scene *s,unsigned int i,bool isCurrent){
@@ -112,7 +188,7 @@ temporal::val Animation::sceneGetLength() const{
 		return 0;
 	}
 	
-	return scenes.current()->getTime();
+	return scenes.current()->getLength();
 }
 
 void Animation::sceneSetLength(temporal::val newLength){
@@ -120,7 +196,7 @@ void Animation::sceneSetLength(temporal::val newLength){
 		return;
 	}
 	
-	scenes.current()->setTime(newLength);
+	scenes.current()->setLength(newLength);
 }
 
 // -------------------------------
@@ -128,7 +204,7 @@ void Animation::sceneSetLength(temporal::val newLength){
 temporal::val totalTime;
 
 void sceneSumTime(Scene *s,unsigned int i,bool isCurrent){
-	totalTime += s->getTime();
+	totalTime += s->getLength();
 }
 
 temporal::val Animation::length() const{
@@ -145,7 +221,7 @@ void Animation::seqAddBefore(){
 		return;
 	}
 	
-	scenes.current()->addBefore(new SceneRenderSeq(renderables.current(),renderables.current()->allocNewSeq()));
+	scenes.current()->addBefore(new SetSequence(renderables.current()));
 }
 
 void Animation::seqAddAfter(){
@@ -153,7 +229,7 @@ void Animation::seqAddAfter(){
 		return;
 	}
 	
-	scenes.current()->addAfter(new SceneRenderSeq(renderables.current(),renderables.current()->allocNewSeq()));
+	scenes.current()->addAfter(new SetSequence(renderables.current()));
 }
 
 void Animation::seqForward(){
@@ -188,12 +264,12 @@ void Animation::seqClear(){
 	scenes.current()->clear();
 }
 
-SetSequence<float> *Animation::seqCurrent() const{
-	if(scenes.current() == NULL || scenes.current()->current() == NULL){
+SetSequence *Animation::seqCurrent() const{
+	if(scenes.current() == NULL){
 		return NULL;
 	}
 	
-	return scenes.current()->current()->getSeq();
+	return scenes.current()->current();
 }
 
 // ------------------------------------------------------------------------------------
@@ -220,7 +296,7 @@ void Animation::drawMarkers() const{
 
 bool stillCurrentRenderableFrame;
 
-void drawSeqFrame(SceneRenderSeq *s,unsigned int i,bool isCurrent){
+void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
 	if(isCurrent && stillCurrentRenderableFrame){
 		
 	}else{

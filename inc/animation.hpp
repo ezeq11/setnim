@@ -3,28 +3,17 @@
 	#include "renderable.hpp"
 	#include "setsequence.hpp"
 	
-	class SceneRenderSeq{
+	class Scene: public PointerIterable<SetSequence>{
 		private:
-			Renderable *r;
-			SetSequence<float> *s;
+			temporal::val length;
 			
 		public:
-			SceneRenderSeq(Renderable *newR,SetSequence<float> *newS);
-			~SceneRenderSeq();
+			Scene(temporal::val newLength);
+			Scene(FILE *in,Renderable *buffers,unsigned int bufferCount);
+			Scene *write(FILE *out,Renderable *buffers,unsigned int bufferCount) const;
 			
-			Renderable *getRenderable() const;
-			SetSequence<float> *getSeq() const;
-	};
-	
-	class Scene: public PointerIterable<SceneRenderSeq>{
-		private:
-			temporal::val time;
-			
-		public:
-			Scene(temporal::val newTime);
-			
-			temporal::val getTime() const;
-			void setTime(temporal::val newTime);
+			temporal::val getLength() const;
+			void setLength(temporal::val newLength);
 	};
 	
 	class Animation{
@@ -33,8 +22,14 @@
 			PointerIterable<Scene> scenes;
 			
 		public:
-			void renderablesAddBefore(Renderable *newRenderable);
-			void renderablesAddAfter(Renderable *newRenderable);
+			Animation();
+			Animation(FILE *in);
+			void write(FILE *out) const;
+			
+			
+			
+			void renderablesAddBefore(unsigned int renderIndex);
+			void renderablesAddAfter(unsigned int renderIndex);
 			void renderablesForward();
 			void renderablesBackward();
 			void renderablesRemove();
@@ -63,7 +58,7 @@
 			void seqRemove();
 			void seqClear();
 			
-			SetSequence<float> *seqCurrent() const;
+			SetSequence *seqCurrent() const;
 			
 			
 			

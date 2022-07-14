@@ -2,6 +2,16 @@
 	#include <cstdint>
 	#include <cstdio>
 	
+	namespace uInt32{
+		void write(FILE *out,uint32_t v);
+		uint16_t read(FILE *in);
+	}
+	
+	namespace uInt16{
+		void write(FILE *out,uint16_t v);
+		uint16_t read(FILE *in);
+	}
+	
 	namespace temporal{
 		typedef uint32_t val;
 		

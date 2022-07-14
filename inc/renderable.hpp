@@ -1,27 +1,18 @@
 #ifndef RENDERABLE_INCLUDED
-	#include <cstdlib>
-	
-	#include "setsequence.hpp"
+	#include "set.hpp"
 	
 	class Renderable{
-		protected:
-			// Randomness Utilities
-			static float randNormal(){
-				return (float)rand() / (float)RAND_MAX;
-			}
-			
-			static float randCenteredNormal(){
-				return randNormal() * 2.0 - 1.0;
-			}
+		private:
+			unsigned int renderIndex;
+			Set buffer;
 			
 		public:
-			// Renderable Contracts
-			virtual ~Renderable(){
-				
-			}
+			Renderable(unsigned int newRenderIndex);
+			Renderable(FILE *in);
+			Renderable *write(FILE *out) const;
 			
-			virtual SetSequence<float> *allocNewSeq() = 0;
-			virtual void draw(float time) const = 0;
+			unsigned int getRenderIndex() const;
+			Set *getBuffer() const;
 	};
 	
 	#define RENDERABLE_INCLUDED
