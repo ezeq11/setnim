@@ -22,12 +22,10 @@ Set::Set(FILE *in)
 	}
 }
 
-Set *Set::write(FILE *out) const{
+void Set::write(FILE *out) const{
 	for(unsigned int i = 0;i < SET_SIZE;++i){
 		normalizedInt16::write(out,vals[i]);
 	}
-	
-	return this;
 }
 
 float Set::get(unsigned int i) const{

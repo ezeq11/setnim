@@ -17,7 +17,7 @@
 		public:
 			Set();
 			Set(FILE *in);
-			Set *write(FILE *out) const;
+			void write(FILE *out) const;
 			
 			float get(unsigned int i) const;
 			Set *set(unsigned int i,float newVal);

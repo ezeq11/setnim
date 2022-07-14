@@ -34,7 +34,7 @@
 				public:
 					TimedSet(temporal::val newTime);
 					TimedSet(FILE *in);
-					TimedSet *write(FILE *out) const;
+					void write(FILE *out) const;
 					
 					temporal::val getTime() const;
 					TimedSet *setTime(temporal::val newTime);
@@ -52,12 +52,13 @@
 			std::list<TimedSet *>::iterator selected;
 			
 			std::list<TimedSet *>::iterator find(temporal::val time);
-			unsigned int find(Renderable *buffers,unsigned int bufferCount,Renderable *sought) const;
+			std::list<TimedSet *>::const_iterator find(temporal::val time) const;
+			unsigned int find(Renderable **buffers,unsigned int bufferCount,Renderable *sought) const;
 		
 		public:
 			SetSequence(Renderable *newBuffer);
-			SetSequence(FILE *in,Renderable *buffers,unsigned int bufferCount);
-			void write(FILE *out,Renderable *buffers,unsigned int bufferCount) const;
+			SetSequence(FILE *in,Renderable **buffers,unsigned int bufferCount);
+			void write(FILE *out,Renderable **buffers,unsigned int bufferCount) const;
 			
 			~SetSequence();
 			

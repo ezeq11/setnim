@@ -6,7 +6,7 @@ Scene::Scene(temporal::val newLength)
 	
 }
 
-Scene::Scene(FILE *in,Renderable *buffers,unsigned int bufferCount)
+Scene::Scene(FILE *in,Renderable **buffers,unsigned int bufferCount)
 :length(temporal::read(in)){
 	unsigned int seqCount = uInt32::read(in);
 	
@@ -20,14 +20,14 @@ Scene::Scene(FILE *in,Renderable *buffers,unsigned int bufferCount)
 }
 
 FILE *fileIO;
-Renderable *bufferTable;
+Renderable **bufferTable;
 unsigned int bufferTableSize;
 
 void writeSeq(SetSequence *s,unsigned int i,bool isCurrent){
 	s->write(fileIO,bufferTable,bufferTableSize);
 }
 
-Scene *Scene::write(FILE *out,Renderable *buffers,unsigned int bufferCount) const{
+void Scene::write(FILE *out,Renderable **buffers,unsigned int bufferCount) const{
 	fileIO = out;
 	bufferTable = buffers;
 	bufferTableSize = bufferCount;
@@ -36,11 +36,11 @@ Scene *Scene::write(FILE *out,Renderable *buffers,unsigned int bufferCount) cons
 	forAll(&writeSeq);
 }
 
-temporal::val Scene::getTime() const{
+temporal::val Scene::getLength() const{
 	return length;
 }
 
-void Scene::setTime(temporal::val newLength){
+void Scene::setLength(temporal::val newLength){
 	length = newLength;
 }
 

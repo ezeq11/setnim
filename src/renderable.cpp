@@ -10,16 +10,14 @@ Renderable::Renderable(FILE *in)
 	
 }
 
-Renderable *Renderable::write(FILE *out) const{
+void Renderable::write(FILE *out) const{
 	uInt32::write(out,(uint16_t)renderIndex);
-	
-	return this;
 }
 
 unsigned int Renderable::getRenderIndex() const{
 	return renderIndex;
 }
 
-Set *Renderable::getBuffer() const{
+Set *Renderable::getBuffer(){
 	return &buffer;
 }

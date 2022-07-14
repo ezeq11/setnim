@@ -48,8 +48,6 @@ namespace Ghostie{
 	
 	Char::Char()
 	:style(PARTICLE_STYLE_NORMAL){
-		set(BODY_SPEED,1.0);
-		
 		randVals[RAND_EYE_L_POS] = randCenteredNormal() / 20.0;
 		randVals[RAND_EYE_R_POS] = randCenteredNormal() / 20.0;
 		
@@ -74,19 +72,15 @@ namespace Ghostie{
 		style = newStyle;
 	}
 	
-	SetSequence<float> *Char::allocNewSeq(){
-		return new NormalizedInt16SetSequence<VAL_COUNT>(this);
-	}
-	
-	void Char::draw(float time) const{
+	void Char::draw(const Set &s,float time) const{
 		using namespace render;
 		
 		float rW = render::innerDimensions().x;
 		float rH = render::innerDimensions().y;
 		
-		float x = get(X) * rW;
-		float y = get(Y) * rH;
-		float size = get(SIZE) * (rW < rH ? rW : rH);
+		float x = s.get(X) * rW;
+		float y = s.get(Y) * rH;
+		float size = s.get(SIZE) * (rW < rH ? rW : rH);
 		
 		switch(style){
 			case PARTICLE_STYLE_NORMAL:
@@ -110,8 +104,8 @@ namespace Ghostie{
 		body->setFillColor(sf::Color(225,225,225,0xff));
 		body->setScale((size * 0.75 / 4.0) / 2.0,(size / 4.0) / 2.0);
 		
-		view::draw(*body,sf::Transform().rotate(get(HAND_L_ROT) * 360.0).translate(x - size / 8.0,y - get(HAND_L_POS) * size * 0.75));
-		view::draw(*body,sf::Transform().rotate(get(HAND_R_ROT) * 360.0).translate(x + size / 8.0,y - get(HAND_R_POS) * size * 0.75));
+		view::draw(*body,sf::Transform().rotate(s.get(HAND_L_ROT) * 360.0).translate(x - size / 8.0,y - s.get(HAND_L_POS) * size * 0.75));
+		view::draw(*body,sf::Transform().rotate(s.get(HAND_R_ROT) * 360.0).translate(x + size / 8.0,y - s.get(HAND_R_POS) * size * 0.75));
 		
 		// Body -------------------------------
 		// bodyNormal.setFillColor(sf::Color(150,150,150,75.0));
@@ -120,13 +114,13 @@ namespace Ghostie{
 		body->setFillColor(sf::Color(225,225,225,0xff));
 		body->setScale(1.0,1.0);
 		
-		view::draw(*body,sf::Transform().translate(x,y).scale(size * get(SHELL_SCALE) / 2.0,size * get(SHELL_SCALE) / 2.0).rotate(get(SHELL_ROT) * 360.0));
+		view::draw(*body,sf::Transform().translate(x,y).scale(size * s.get(SHELL_SCALE) / 2.0,size * s.get(SHELL_SCALE) / 2.0).rotate(s.get(SHELL_ROT) * 360.0));
 		
 		float pd,px,py;
 		float factor,col;
 		
 		for(unsigned int i = 0;i < PARTICLE_COUNT;++i){
-			pd = getParticleAttrib(i,PARTICLE_RADIUS) * sin(time * get(BODY_SPEED) * 1.0 + getParticleAttrib(i,PARTICLE_PHASE_OFFSET));
+			pd = getParticleAttrib(i,PARTICLE_RADIUS) * sin(time * s.get(BODY_SPEED) * 1.0 + getParticleAttrib(i,PARTICLE_PHASE_OFFSET));
 			col = 200.0 + fabs(pd) * 50.0;
 			
 			px = pd * cos(getParticleAttrib(i,PARTICLE_THETA)); // + sin(time + pose.p[i * 2 + 1] * 2.0) / 10.0;
@@ -152,8 +146,8 @@ namespace Ghostie{
 		float eyeHeight = size / 3.0;
 		float eyeWidth = eyeHeight / 2.0;
 		
-		float eyeLeftX = ((eyeWidth * -2.3 / 2.0) * (0.9 + fabs(cos(get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_L_POS) * eyeWidth);
-		float eyeRightX = ((eyeWidth * 2.3 / 2.0) * (0.9 + fabs(cos(get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_R_POS) * eyeWidth);
+		float eyeLeftX = ((eyeWidth * -2.3 / 2.0) * (0.9 + fabs(cos(s.get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_L_POS) * eyeWidth);
+		float eyeRightX = ((eyeWidth * 2.3 / 2.0) * (0.9 + fabs(cos(s.get(FACE_DIST) * PI / 2.0)) * 0.1)) + (getR(RAND_EYE_R_POS) * eyeWidth);
 		
 		view::temp::clear();
 		
@@ -166,16 +160,16 @@ namespace Ghostie{
 		// Lower Eyelids
 		lowerEyeLid.setScale(sf::Vector2f(eyeWidth,eyeHeight / 1.5));
 		
-		view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(eyeHeight / 2.0) * (1.0 - get(EYELID_LL_POS))).rotate(getR(RAND_EYELID_LL_ROT)));
-		view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(eyeHeight / 2.0) * (1.0 - get(EYELID_RL_POS))).rotate(getR(RAND_EYELID_RL_ROT)));
+		view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(eyeHeight / 2.0) * (1.0 - s.get(EYELID_LL_POS))).rotate(getR(RAND_EYELID_LL_ROT)));
+		view::temp::draw(lowerEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(eyeHeight / 2.0) * (1.0 - s.get(EYELID_RL_POS))).rotate(getR(RAND_EYELID_RL_ROT)));
 		
 		// Upper Eyelids
 		upperEyeLid.setScale(sf::Vector2f(eyeWidth * 2.0,eyeHeight / 1.5));
 		
-		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_LU_POS))).rotate(get(EYELID_LU_ROT) * 360.0 + getR(RAND_EYELID_LU_ROT)));
-		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - get(EYELID_RU_POS))).rotate(get(EYELID_RU_ROT) * 360.0 + getR(RAND_EYELID_RU_ROT)));
+		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeLeftX,(-eyeHeight / 2.0) * (1.0 - s.get(EYELID_LU_POS))).rotate(s.get(EYELID_LU_ROT) * 360.0 + getR(RAND_EYELID_LU_ROT)));
+		view::temp::draw(upperEyeLid,sf::BlendNone,sf::Transform().translate(eyeRightX,(-eyeHeight / 2.0) * (1.0 - s.get(EYELID_RU_POS))).rotate(s.get(EYELID_RU_ROT) * 360.0 + getR(RAND_EYELID_RU_ROT)));
 		
 		// Face -------------------------------
-		view::drawTemp(sf::Transform().translate(x,y).rotate(get(FACE_ROT) * 360.0).translate(size * 0.75 * get(FACE_DIST) / 2.0,0.0).rotate(-get(FACE_ROT) * 360.0 / 1.25));
+		view::drawTemp(sf::Transform().translate(x,y).rotate(s.get(FACE_ROT) * 360.0).translate(size * 0.75 * s.get(FACE_DIST) / 2.0,0.0).rotate(-s.get(FACE_ROT) * 360.0 / 1.25));
 	}
 }

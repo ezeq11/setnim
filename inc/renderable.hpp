@@ -9,10 +9,10 @@
 		public:
 			Renderable(unsigned int newRenderIndex);
 			Renderable(FILE *in);
-			Renderable *write(FILE *out) const;
+			void write(FILE *out) const;
 			
 			unsigned int getRenderIndex() const;
-			Set *getBuffer() const;
+			Set *getBuffer();
 	};
 	
 	#define RENDERABLE_INCLUDED

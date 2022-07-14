@@ -1,5 +1,5 @@
 #ifndef GHOSTIE_INCLUDED
-	#include "renderable.hpp"
+	#include "set.hpp"
 	
 	namespace Ghostie{
 		enum Val{
@@ -64,7 +64,7 @@
 		
 		void init();
 		
-		class Char: public Renderable, public NormalizedInt16Set<VAL_COUNT>{
+		class Char{
 			private:
 				float randVals[RAND_VAL_COUNT];
 				
@@ -82,8 +82,7 @@
 				ParticleStyle getStyle() const;
 				void setStyle(ParticleStyle newStyle);
 				
-				SetSequence<float> *allocNewSeq();
-				void draw(float time) const;
+				void draw(const Set &s,float time) const;
 		};
 	}
 	

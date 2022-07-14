@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iterator>
 
 #include "setsequence.hpp"
@@ -63,22 +64,20 @@ SetSequence::TimedSet::TimedSet(FILE *in)
 	}
 }
 
-TimedSet *SetSequence::TimedSet::write(FILE *out) const{
+void SetSequence::TimedSet::write(FILE *out) const{
 	Set::write(out);
 	temporal::write(out,time);
 	
 	for(unsigned int i = 0;i < SET_SIZE;++i){
 		uInt32::write(out,(uint32_t)transitions[i]);
 	}
-	
-	return this;
 }
 
 temporal::val SetSequence::TimedSet::getTime() const{
 	return time;
 }
 
-TimedSet *SetSequence::TimedSet::setTime(temporal::val newTime){
+SetSequence::TimedSet *SetSequence::TimedSet::setTime(temporal::val newTime){
 	time = newTime;
 	
 	return this;
@@ -88,7 +87,7 @@ float SetSequence::TimedSet::get(unsigned int i) const{
 	return Set::get(i);
 }
 
-TimedSet *SetSequence::TimedSet::set(unsigned int i,float newVal){
+SetSequence::TimedSet *SetSequence::TimedSet::set(unsigned int i,float newVal){
 	Set::set(i,newVal);
 	
 	return this;
@@ -98,7 +97,7 @@ Transition SetSequence::TimedSet::getTransition(unsigned int i) const{
 	return transitions[i];
 }
 
-TimedSet *SetSequence::TimedSet::setTransition(unsigned int i,Transition newTransition){
+SetSequence::TimedSet *SetSequence::TimedSet::setTransition(unsigned int i,Transition newTransition){
 	transitions[i] = newTransition;
 	
 	return this;
@@ -106,7 +105,7 @@ TimedSet *SetSequence::TimedSet::setTransition(unsigned int i,Transition newTran
 
 // ====================================================================================
 
-std::list<TimedSet *>::iterator SetSequence::find(temporal::val time){
+std::list<SetSequence::TimedSet *>::iterator SetSequence::find(temporal::val time){
 	std::list<TimedSet *>::iterator it = sets.begin();
 	
 	while(it != sets.end() && (*it)->getTime() < time){
@@ -116,7 +115,17 @@ std::list<TimedSet *>::iterator SetSequence::find(temporal::val time){
 	return it;
 }
 
-unsigned int SetSequence::find(Renderable *buffers,unsigned int bufferCount,Renderable *sought) const{
+std::list<SetSequence::TimedSet *>::const_iterator SetSequence::find(temporal::val time) const{
+	std::list<TimedSet *>::const_iterator it = sets.begin();
+	
+	while(it != sets.end() && (*it)->getTime() < time){
+		++it;
+	}
+	
+	return it;
+}
+
+unsigned int SetSequence::find(Renderable **buffers,unsigned int bufferCount,Renderable *sought) const{
 	for(unsigned int i = 0;i < bufferCount;++i){
 		if(buffers[i] == sought){
 			return i;
@@ -133,7 +142,7 @@ SetSequence::SetSequence(Renderable *newBuffer)
 	
 }
 
-SetSequence::SetSequence(FILE *in,Renderable *buffers,unsigned int bufferCount)
+SetSequence::SetSequence(FILE *in,Renderable **buffers,unsigned int bufferCount)
 :buffer(buffers[uInt32::read(in)]),sets(),selected(sets.end()){
 	unsigned int seqSize = uInt32::read(in);
 	unsigned int selectionIndex = uInt32::read(in);
@@ -151,7 +160,7 @@ SetSequence::SetSequence(FILE *in,Renderable *buffers,unsigned int bufferCount)
 	}
 }
 
-void SetSequence::write(FILE *out,Renderable *buffers,unsigned int bufferCount) const{
+void SetSequence::write(FILE *out,Renderable **buffers,unsigned int bufferCount) const{
 	unsigned int bufferIndex = find(buffers,bufferCount,buffer);
 	
 	if(bufferIndex == bufferCount){
@@ -161,9 +170,9 @@ void SetSequence::write(FILE *out,Renderable *buffers,unsigned int bufferCount) 
 	uInt32::write(out,(uint32_t)bufferIndex);
 	
 	uInt32::write(out,(uint32_t)sets.size());
-	uInt32::write(out,(uint32_t)std::distance(sets.begin(),selected));
+	uInt32::write(out,(uint32_t)std::distance(sets.begin(),(std::list<TimedSet *>::const_iterator)selected));
 	
-	for(std::list<TimedSet *>::iterator it = sets.begin();it != sets.end();++it){
+	for(std::list<TimedSet *>::const_iterator it = sets.begin();it != sets.end();++it){
 		(*it)->write(out);
 	}
 }
@@ -234,7 +243,7 @@ void SetSequence::move(temporal::val newTime){
 }
 
 void SetSequence::bufferInstant(temporal::val time) const{
-	std::list<TimedSet *>::iterator it = find(time);
+	std::list<TimedSet *>::const_iterator it = find(time);
 	
 	if(it == sets.begin()){
 		return;
@@ -244,19 +253,19 @@ void SetSequence::bufferInstant(temporal::val time) const{
 	TimedSet *begin = *(--it);
 	
 	float deltaT,deltaV;
-	deltaT = temporal::toFloat(time - begin.getTime()) / temporal::toFloat(end.getTime() - begin.getTime());
+	deltaT = temporal::toFloat(time - begin->getTime()) / temporal::toFloat(end->getTime() - begin->getTime());
 	
 	for(unsigned int i = 0;i < SET_SIZE;++i){
-		deltaV = end.get(i) - begin.get(i);
+		deltaV = end->get(i) - begin->get(i);
 		
-		buffer->getBuffer()->set(i,begin.get(i) + interpolate(transitions[i],deltaT) * deltaV);
+		buffer->getBuffer()->set(i,begin->get(i) + interpolate(begin->getTransition(i),deltaT) * deltaV);
 	}
 }
 
 #define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,temporal::toFloat((*it)->getTime() - begin) / temporal::toFloat(end - begin))
 
 void SetSequence::drawBar(temporal::val begin,temporal::val end) const{
-	std::list<TimedSet *>::iterator it = find(begin);
+	std::list<TimedSet *>::const_iterator it = find(begin);
 	
 	if(it != sets.begin()){
 		--it;

@@ -9,8 +9,8 @@
 			
 		public:
 			Scene(temporal::val newLength);
-			Scene(FILE *in,Renderable *buffers,unsigned int bufferCount);
-			Scene *write(FILE *out,Renderable *buffers,unsigned int bufferCount) const;
+			Scene(FILE *in,Renderable **buffers,unsigned int bufferCount);
+			void write(FILE *out,Renderable **buffers,unsigned int bufferCount) const;
 			
 			temporal::val getLength() const;
 			void setLength(temporal::val newLength);

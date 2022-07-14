@@ -29,7 +29,7 @@ enum Expression{
 	EXP_COUNT
 };
 
-Ghostie::Char expresses[EXP_COUNT];
+Set expresses[EXP_COUNT];
 
 sf::RenderWindow window;
 
@@ -72,7 +72,7 @@ int main(){
 	bool run = true;
 	
 	sf::Event event;
-	bool isCtrlDown,isAltDown,isShiftDown;
+	bool isCtrlDown,isShiftDown;
 	
 	float timeViewCursor;
 	
@@ -88,27 +88,20 @@ int main(){
 	Expression lastExp = EXP_BLANK;
 	Expression currExp = EXP_BLANK;
 	
-	Ghostie::Char pose;
+	Ghostie::Char ghost;
+	Set pose;
 	
-	pose.set(Ghostie::X,0.0);
-	pose.set(Ghostie::Y,0.0);
-	pose.set(Ghostie::SIZE,0.5);
+	pose.set(Ghostie::X,0.0)->set(Ghostie::Y,0.0)->set(Ghostie::SIZE,0.5)->set(Ghostie::BODY_SPEED,1.0);
 	
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_ROT,-30.0 / 360.0);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_ROT,30.0 / 360.0);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3)->set(Ghostie::EYELID_LU_ROT,-30.0 / 360.0);
+	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3)->set(Ghostie::EYELID_RU_ROT,30.0 / 360.0);
 	
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_POS,0.3);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_ROT,30.0 / 360.0);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_POS,0.3);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_ROT,-30.0 / 360.0);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_POS,0.3)->set(Ghostie::EYELID_LU_ROT,30.0 / 360.0);
+	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_POS,0.3)->set(Ghostie::EYELID_RU_ROT,-30.0 / 360.0);
 	
-	expresses[EXP_BORED].set(Ghostie::EYELID_LU_POS,0.2);
-	expresses[EXP_BORED].set(Ghostie::EYELID_RU_POS,0.2);
+	expresses[EXP_BORED].set(Ghostie::EYELID_LU_POS,0.2)->set(Ghostie::EYELID_RU_POS,0.2);
 	
-	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_LL_POS,0.2);
-	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_RL_POS,0.2);
+	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_LL_POS,0.2)->set(Ghostie::EYELID_RL_POS,0.2);
 	
 	float faceDist,faceRot;
 	
@@ -146,7 +139,7 @@ int main(){
 			pose.set(Ghostie::EYELID_RU_ROT,expresses[lastExp].get(Ghostie::EYELID_RU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_RU_ROT) - expresses[lastExp].get(Ghostie::EYELID_RU_ROT)) * (delta / 0.15)));
 		}
 		
-		pose.draw(clock.getElapsedTime().asSeconds());
+		ghost.draw(pose,clock.getElapsedTime().asSeconds());
 		
 		// Done
 		render::drawView();
@@ -165,7 +158,7 @@ int main(){
 		// Event Handling --------------------------------
 		if(window.pollEvent(event)){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
-			isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
+			// isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
 			// if(anim.seqCurrent())
@@ -194,7 +187,7 @@ int main(){
 						case sf::Keyboard::Left:
 							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 								if(isCtrlDown){
-									anim.renderablesAddBefore(new Ghostie::Char());
+									anim.renderablesAddBefore(0);
 								}else{
 									anim.renderablesBackward();
 								}
@@ -213,7 +206,7 @@ int main(){
 						case sf::Keyboard::Right:
 							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 								if(isCtrlDown){
-									anim.renderablesAddAfter(new Ghostie::Char());
+									anim.renderablesAddAfter(0);
 								}else{
 									anim.renderablesForward();
 								}
@@ -243,6 +236,13 @@ int main(){
 							}
 							
 							break;
+						case sf::Keyboard::E:
+							transfer = clock.getElapsedTime();
+							
+							lastExp = currExp;
+							currExp = (Expression)((currExp + 1) % EXP_COUNT);
+							
+							break;
 						default:
 							break;
 					}
@@ -251,11 +251,6 @@ int main(){
 				case sf::Event::MouseButtonPressed:
 					switch(event.mouseButton.button){
 						case sf::Mouse::Left:
-							/*transfer = clock.getElapsedTime();
-							
-							lastExp = currExp;
-							currExp = (Expression)((currExp + 1) % EXP_COUNT);*/
-							
 							{
 								float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
 								
@@ -278,9 +273,9 @@ int main(){
 							
 							break;
 						case sf::Mouse::Right:
-							pose.setStyle((Ghostie::ParticleStyle)((pose.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
+							ghost.setStyle((Ghostie::ParticleStyle)((ghost.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
 							
-							switch(pose.getStyle()){
+							switch(ghost.getStyle()){
 								case Ghostie::PARTICLE_STYLE_NORMAL:
 									pose.set(Ghostie::BODY_SPEED,1.0);
 									
