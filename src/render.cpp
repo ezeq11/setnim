@@ -241,18 +241,18 @@ namespace render{
 		
 		// Move to a length of TIME_DISPLAY_LEN
 		memmove(timeDisplayBuffer + (TIME_DISPLAY_LEN - len),buffer,len);
-		timeDisplayBuffer[TIME_DISPLAY_LEN] = '\0';
 		
 		// Pad beginning with background
 		for(unsigned int i = 0;i < (TIME_DISPLAY_LEN - len);++i){
 			timeDisplayBuffer[i] = background;
 		}
 		
-		// Insert decimal into string
-		timeDisplayBuffer[TIME_DISPLAY_LEN + 1] = timeDisplayBuffer[TIME_DISPLAY_LEN + 0]; // terminating null
+		// Insert decimal into string and format
+		timeDisplayBuffer[TIME_DISPLAY_LEN + 2] = '\0';
+		timeDisplayBuffer[TIME_DISPLAY_LEN + 1] = 's';
 		timeDisplayBuffer[TIME_DISPLAY_LEN + 0] = timeDisplayBuffer[TIME_DISPLAY_LEN - 1]; // hundredths
 		timeDisplayBuffer[TIME_DISPLAY_LEN - 1] = timeDisplayBuffer[TIME_DISPLAY_LEN - 2]; // tens
-		timeDisplayBuffer[TIME_DISPLAY_LEN - 2] = '.';                                     // decimal
+		timeDisplayBuffer[TIME_DISPLAY_LEN - 2] = '.';
 		
 		// Draw
 		sf::Text display(std::string(timeDisplayBuffer),font,TEXT_SIZE);
