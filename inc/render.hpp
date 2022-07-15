@@ -25,7 +25,8 @@
 		void drawSequenceBar(SequenceBar type,float x);
 		void drawRenderableMarker(bool highlighted,int x);
 		
-		void drawTime(temporal::val time);
+		void drawTime(temporal::val time,char background);
+		void drawTime(const char *buffer,char background);
 		
 		namespace view{
 			void clear();

@@ -44,6 +44,7 @@
 			void sceneRemove();
 			void sceneClear();
 			
+			bool sceneAvailable() const;
 			temporal::val sceneGetLength() const;
 			void sceneSetLength(temporal::val newLength);
 			

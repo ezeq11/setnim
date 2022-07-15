@@ -1,5 +1,5 @@
 #ifndef TIMEVIEW_INCLUDED
-	#define TIME_DISPLAY_LEN 5
+	#define TIME_DISPLAY_LEN 6
 	
 	namespace timeView{
 		void init();

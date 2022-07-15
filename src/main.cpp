@@ -178,13 +178,17 @@ int main(){
 		
 		switch(inputState){
 			case INPUT_DEFAULT:
-				render::drawTime(anim.sceneGetLength());
+				if(anim.sceneAvailable()){
+					render::drawTime(anim.sceneGetLength(),' ');
+				}else{
+					render::drawTime("",'-');
+				}
 				
 				break;
 			case INPUT_NEW_SCENE_TIME_BEFORE:
 			case INPUT_NEW_SCENE_TIME_AFTER:
 			case INPUT_SET_SCENE_TIME:
-				render::drawTime(strtol(timeInput.buffer(),NULL,10));
+				render::drawTime(timeInput.buffer(),'_');
 				
 				break;
 			case INPUT_COUNT:
@@ -357,6 +361,8 @@ int main(){
 					
 					if(timeInput.interpret(event.text.unicode)){
 						anim.sceneAddBefore(strtol(timeInput.buffer(),NULL,10));
+						timeInput.clear();
+						
 						inputState = INPUT_DEFAULT;
 					}
 					
@@ -368,6 +374,8 @@ int main(){
 					
 					if(timeInput.interpret(event.text.unicode)){
 						anim.sceneAddAfter(strtol(timeInput.buffer(),NULL,10));
+						timeInput.clear();
+						
 						inputState = INPUT_DEFAULT;
 					}
 					

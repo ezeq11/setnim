@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cmath>
+#include <cstring>
 
 #include "render.hpp"
 
@@ -33,7 +34,7 @@ namespace render{
 	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
 	sf::RectangleShape RenderableBackground;
 	
-	char timeDisplayBuffer[50];
+	char timeDisplayBuffer[32];
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -227,9 +228,33 @@ namespace render{
 		}
 	}
 	
-	void drawTime(temporal::val time){
-		sprintf(timeDisplayBuffer,"%3u.%02u",time / 100,time % 100);
+	void drawTime(temporal::val time,char background){
+		sprintf(timeDisplayBuffer,"%03u",time);
 		
+		drawTime(timeDisplayBuffer,background);
+	}
+	
+	void drawTime(const char *buffer,char background){
+		// Get and sanitize length
+		unsigned int len = strlen(buffer);
+		len = (len > TIME_DISPLAY_LEN ? TIME_DISPLAY_LEN : len);
+		
+		// Move to a length of TIME_DISPLAY_LEN
+		memmove(timeDisplayBuffer + (TIME_DISPLAY_LEN - len),buffer,len);
+		timeDisplayBuffer[TIME_DISPLAY_LEN] = '\0';
+		
+		// Pad beginning with background
+		for(unsigned int i = 0;i < (TIME_DISPLAY_LEN - len);++i){
+			timeDisplayBuffer[i] = background;
+		}
+		
+		// Insert decimal into string
+		timeDisplayBuffer[TIME_DISPLAY_LEN + 1] = timeDisplayBuffer[TIME_DISPLAY_LEN + 0]; // terminating null
+		timeDisplayBuffer[TIME_DISPLAY_LEN + 0] = timeDisplayBuffer[TIME_DISPLAY_LEN - 1]; // hundredths
+		timeDisplayBuffer[TIME_DISPLAY_LEN - 1] = timeDisplayBuffer[TIME_DISPLAY_LEN - 2]; // tens
+		timeDisplayBuffer[TIME_DISPLAY_LEN - 2] = '.';                                     // decimal
+		
+		// Draw
 		sf::Text display(std::string(timeDisplayBuffer),font,TEXT_SIZE);
 		display.setPosition(-winWidth / 2.0 + TEXT_SIZE / 2.0,-winHeight / 2.0 + TEXT_SIZE / 2.0);
 		

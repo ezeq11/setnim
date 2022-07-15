@@ -8,6 +8,11 @@
 		public:
 			TextInput()
 			:chars{},current(0){
+				clear();
+			}
+			
+			void clear(){
+				current = 0;
 				chars[current] = '\0';
 			}
 			
@@ -23,7 +28,6 @@
 					
 				}else if(c == '\n' || c == '\r'){
 					chars[current] = '\0';
-					current = 0;
 					
 					return true;
 					

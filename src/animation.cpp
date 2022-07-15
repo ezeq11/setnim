@@ -183,6 +183,10 @@ void Animation::sceneClear(){
 	scenes.clear();
 }
 
+bool Animation::sceneAvailable() const{
+	return scenes.current() != NULL;
+}
+
 temporal::val Animation::sceneGetLength() const{
 	if(scenes.current() == NULL){
 		return 0;
