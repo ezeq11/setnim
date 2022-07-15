@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cmath>
 #include <ctime>
+#include <cctype>
 
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -12,12 +13,23 @@
 #include "setsequence.hpp"
 #include "timeView.hpp"
 #include "animation.hpp"
+#include "textInput.hpp"
 
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
 
 #define WINDOW_SCREEN_HEIGHT_RATIO 0.6
 #define WINDOW_SCREEN_WIDTH_RATIO 0.8
+
+enum InputState{
+	INPUT_DEFAULT,
+	
+	INPUT_NEW_SCENE_TIME_BEFORE,
+	INPUT_NEW_SCENE_TIME_AFTER,
+	INPUT_SET_SCENE_TIME,
+	
+	INPUT_COUNT
+};
 
 enum Expression{
 	EXP_BLANK,
@@ -36,6 +48,10 @@ sf::RenderWindow window;
 void resizeContext(float width,float height){
 	window.setView(sf::View(sf::Vector2f(0.0,0.0),sf::Vector2f(width,height)));
 	render::resize();
+}
+
+bool timeInputAllowable(char c){
+	return isdigit(c);
 }
 
 int main(){
@@ -64,7 +80,13 @@ int main(){
 	
 	// Execution -----------------------------------------
 	timeView::init();
-	render::init(window,sf::Vector2u(1920,1080));
+	
+	if(!render::init(window,sf::Vector2u(1920,1080),"share-tech-mono-regular.ttf")){
+		window.close();
+		
+		return EXIT_FAILURE;
+	}
+	
 	Ghostie::init();
 	
 	resizeContext(windowWidth,windowHeight);
@@ -74,10 +96,11 @@ int main(){
 	sf::Event event;
 	bool isCtrlDown,isShiftDown;
 	
+	InputState inputState = INPUT_DEFAULT;
 	float timeViewCursor;
 	
 	Animation anim;
-	
+	TextInput<TIME_DISPLAY_LEN,&timeInputAllowable> timeInput;
 	// unsigned int currentProperty = 0;
 	
 	
@@ -153,6 +176,22 @@ int main(){
 			render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
 		}
 		
+		switch(inputState){
+			case INPUT_DEFAULT:
+				render::drawTime(anim.sceneGetLength());
+				
+				break;
+			case INPUT_NEW_SCENE_TIME_BEFORE:
+			case INPUT_NEW_SCENE_TIME_AFTER:
+			case INPUT_SET_SCENE_TIME:
+				render::drawTime(strtol(timeInput.buffer(),NULL,10));
+				
+				break;
+			case INPUT_COUNT:
+			default:
+				break;
+		}
+		
 		window.display();
 		
 		// Event Handling --------------------------------
@@ -163,84 +202,147 @@ int main(){
 			
 			// if(anim.seqCurrent())
 			
-			switch(event.type){
-				case sf::Event::Closed:
-					run = false;
-					
-					break;
-				case sf::Event::Resized:
-					resizeContext(event.size.width,event.size.height);
-					
-					break;
-				case sf::Event::KeyPressed:
-					switch(event.key.code){
-						case sf::Keyboard::Up:
-							pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
-							pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
+			switch(inputState){
+				case INPUT_DEFAULT:
+					switch(event.type){
+						case sf::Event::Closed:
+							run = false;
 							
 							break;
-						case sf::Keyboard::Down:
-							pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
-							pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
+						case sf::Event::Resized:
+							resizeContext(event.size.width,event.size.height);
 							
 							break;
-						case sf::Keyboard::Left:
-							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
-								if(isCtrlDown){
-									anim.renderablesAddBefore(0);
-								}else{
-									anim.renderablesBackward();
-								}
-							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-								if(isCtrlDown){
-									anim.sceneAddBefore(50);
-								}else{
-									anim.sceneBackward();
-								}
+						case sf::Event::KeyPressed:
+							switch(event.key.code){
+								case sf::Keyboard::Up:
+									pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
+									pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
+									
+									break;
+								case sf::Keyboard::Down:
+									pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
+									pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
+									
+									break;
+								case sf::Keyboard::Left:
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+										if(isCtrlDown){
+											anim.renderablesAddBefore(0);
+										}else{
+											anim.renderablesBackward();
+										}
+									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+										if(isCtrlDown){
+											inputState = INPUT_NEW_SCENE_TIME_BEFORE;
+										}else{
+											anim.sceneBackward();
+										}
+									}else{
+										pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
+										pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
+									}
+									
+									break;
+								case sf::Keyboard::Right:
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+										if(isCtrlDown){
+											anim.renderablesAddAfter(0);
+										}else{
+											anim.renderablesForward();
+										}
+									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+										if(isCtrlDown){
+											inputState = INPUT_NEW_SCENE_TIME_AFTER;
+										}else{
+											anim.sceneForward();
+										}
+									}else{
+										pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
+										pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
+									}
+									
+									break;
+								case sf::Keyboard::D:
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+										anim.renderablesRemove();
+										
+									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+										anim.sceneRemove();
+										
+									}else if(isCtrlDown){
+										if(anim.seqCurrent() != NULL){
+											anim.seqCurrent()->remove();
+										}
+									}
+									
+									break;
+								case sf::Keyboard::E:
+									transfer = clock.getElapsedTime();
+									
+									lastExp = currExp;
+									currExp = (Expression)((currExp + 1) % EXP_COUNT);
+									
+									break;
+								default:
+									break;
+							}
+							
+							break;
+						case sf::Event::MouseButtonPressed:
+							switch(event.mouseButton.button){
+								case sf::Mouse::Left:
+									{
+										float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
+										
+										if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+											if(anim.seqCurrent() != NULL){
+												anim.seqCurrent()->add(seqTime);
+											}
+											
+										}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+											if(anim.seqCurrent() != NULL){
+												anim.seqCurrent()->move(seqTime);
+											}
+											
+										}else{
+											if(anim.seqCurrent() != NULL){
+												anim.seqCurrent()->select(seqTime);
+											}
+										}
+									}
+									
+									break;
+								case sf::Mouse::Right:
+									ghost.setStyle((Ghostie::ParticleStyle)((ghost.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
+									
+									switch(ghost.getStyle()){
+										case Ghostie::PARTICLE_STYLE_NORMAL:
+											pose.set(Ghostie::BODY_SPEED,1.0);
+											
+											break;
+										case Ghostie::PARTICLE_STYLE_SOLID:
+											pose.set(Ghostie::BODY_SPEED,0.5);
+											
+											break;
+										case Ghostie::PARTICLE_STYLE_POINTY:
+											pose.set(Ghostie::BODY_SPEED,2.0);
+											
+											break;
+										case Ghostie::PARTICLE_STYLE_COUNT:
+											break;
+									}
+									
+									break;
+								default:
+									break;
+							}
+						case sf::Event::MouseWheelScrolled:
+							if(isShiftDown){
+								timeView::zoomBy(event.mouseWheelScroll.delta);
 							}else{
-								pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
-								pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
+								timeView::translateBy(event.mouseWheelScroll.delta / 10.0);
 							}
-							
-							break;
-						case sf::Keyboard::Right:
-							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
-								if(isCtrlDown){
-									anim.renderablesAddAfter(0);
-								}else{
-									anim.renderablesForward();
-								}
-							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-								if(isCtrlDown){
-									anim.sceneAddAfter(50);
-								}else{
-									anim.sceneForward();
-								}
-							}else{
-								pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
-								pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
-							}
-							
-							break;
-						case sf::Keyboard::D:
-							if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
-								anim.renderablesRemove();
-								
-							}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-								anim.sceneRemove();
-								
-							}else if(isCtrlDown){
-								if(anim.seqCurrent() != NULL){
-									anim.seqCurrent()->remove();
-								}
-							}
-							
-							break;
-						case sf::Keyboard::E:
-							transfer = clock.getElapsedTime();
-							
-							lastExp = currExp;
-							currExp = (Expression)((currExp + 1) % EXP_COUNT);
 							
 							break;
 						default:
@@ -248,62 +350,33 @@ int main(){
 					}
 					
 					break;
-				case sf::Event::MouseButtonPressed:
-					switch(event.mouseButton.button){
-						case sf::Mouse::Left:
-							{
-								float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
-								
-								if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-									if(anim.seqCurrent() != NULL){
-										anim.seqCurrent()->add(seqTime);
-									}
-									
-								}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-									if(anim.seqCurrent() != NULL){
-										anim.seqCurrent()->move(seqTime);
-									}
-									
-								}else{
-									if(anim.seqCurrent() != NULL){
-										anim.seqCurrent()->select(seqTime);
-									}
-								}
-							}
-							
-							break;
-						case sf::Mouse::Right:
-							ghost.setStyle((Ghostie::ParticleStyle)((ghost.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
-							
-							switch(ghost.getStyle()){
-								case Ghostie::PARTICLE_STYLE_NORMAL:
-									pose.set(Ghostie::BODY_SPEED,1.0);
-									
-									break;
-								case Ghostie::PARTICLE_STYLE_SOLID:
-									pose.set(Ghostie::BODY_SPEED,0.5);
-									
-									break;
-								case Ghostie::PARTICLE_STYLE_POINTY:
-									pose.set(Ghostie::BODY_SPEED,2.0);
-									
-									break;
-								case Ghostie::PARTICLE_STYLE_COUNT:
-									break;
-							}
-							
-							break;
-						default:
-							break;
+				case INPUT_NEW_SCENE_TIME_BEFORE:
+					if(event.type != sf::Event::TextEntered){
+						break;
 					}
-				case sf::Event::MouseWheelScrolled:
-					if(isShiftDown){
-						timeView::zoomBy(event.mouseWheelScroll.delta);
-					}else{
-						timeView::translateBy(event.mouseWheelScroll.delta / 10.0);
+					
+					if(timeInput.interpret(event.text.unicode)){
+						anim.sceneAddBefore(strtol(timeInput.buffer(),NULL,10));
+						inputState = INPUT_DEFAULT;
 					}
 					
 					break;
+				case INPUT_NEW_SCENE_TIME_AFTER:
+					if(event.type != sf::Event::TextEntered){
+						break;
+					}
+					
+					if(timeInput.interpret(event.text.unicode)){
+						anim.sceneAddAfter(strtol(timeInput.buffer(),NULL,10));
+						inputState = INPUT_DEFAULT;
+					}
+					
+					break;
+				case INPUT_SET_SCENE_TIME:
+					
+					
+					break;
+				case INPUT_COUNT:
 				default:
 					break;
 			}

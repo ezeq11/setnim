@@ -14,7 +14,7 @@ namespace uInt32{
 		fputc((v >> 0 ) & 0xff,out);
 	}
 	
-	uint16_t read(FILE *in){
+	uint32_t read(FILE *in){
 		uint32_t u1 = get(in);
 		uint32_t u2 = get(in);
 		uint32_t u3 = get(in);

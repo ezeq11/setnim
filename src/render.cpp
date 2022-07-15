@@ -3,6 +3,8 @@
 
 #include "render.hpp"
 
+#define TEXT_SIZE 20
+
 #define SCENE_HEIGHT 20
 
 #define SCENE_MARKER_MARGIN 2
@@ -24,10 +26,14 @@ namespace render{
 	float winWidth,winHeight;
 	sf::Vector2u dimensions;
 	
+	sf::Font font;
+	
 	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted;
 	sf::RectangleShape scrollBackground,scrollBar;
 	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
 	sf::RectangleShape RenderableBackground;
+	
+	char timeDisplayBuffer[50];
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -42,11 +48,15 @@ namespace render{
 	}
 	
 	// Functions --------------------------------------------------
-	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions){
-		// Render Containers ----------------
+	bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions,const char *fontFile){
 		window = &renderWindow;
 		dimensions = innerDimensions;
 		
+		if(!font.loadFromFile(std::string(fontFile))){
+			return false;
+		}
+		
+		// Render Containers ----------------
 		if(!view::view.create(dimensions.x,dimensions.y)){
 			return false;
 		}
@@ -215,6 +225,15 @@ namespace render{
 			sceneMarker.setPosition(scrX,scrY);
 			window->draw(sceneMarker);
 		}
+	}
+	
+	void drawTime(temporal::val time){
+		sprintf(timeDisplayBuffer,"%3u.%02u",time / 100,time % 100);
+		
+		sf::Text display(std::string(timeDisplayBuffer),font,TEXT_SIZE);
+		display.setPosition(-winWidth / 2.0 + TEXT_SIZE / 2.0,-winHeight / 2.0 + TEXT_SIZE / 2.0);
+		
+		window->draw(display);
 	}
 	
 	namespace view{
