@@ -18,11 +18,11 @@
 			
 			bool interpret(char c){
 				if(c == '\b'){
-					chars[current] = '\0';
-					
 					if(current > 0){
 						--current;
 					}
+					
+					chars[current] = '\0';
 					
 					return false;
 					
