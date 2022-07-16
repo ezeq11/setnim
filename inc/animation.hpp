@@ -64,7 +64,7 @@
 			
 			
 			void drawMarkers() const;
-			void render(float time,bool stillActiveFrame) const;
+			void render(void (**renderers)(const Set &,float),float time,bool stillActiveFrame) const;
 	};
 	
 	#define ANIMATION_INCLUDED

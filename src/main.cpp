@@ -288,6 +288,12 @@ int main(){
 									currExp = (Expression)((currExp + 1) % EXP_COUNT);
 									
 									break;
+								case sf::Keyboard::W:
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+										inputState = INPUT_SET_SCENE_TIME;
+									}
+									
+									break;
 								default:
 									break;
 							}
@@ -361,6 +367,8 @@ int main(){
 					
 					if(timeInput.interpret(event.text.unicode)){
 						anim.sceneAddBefore(strtol(timeInput.buffer(),NULL,10));
+						anim.sceneBackward();
+						
 						timeInput.clear();
 						
 						inputState = INPUT_DEFAULT;
@@ -374,6 +382,8 @@ int main(){
 					
 					if(timeInput.interpret(event.text.unicode)){
 						anim.sceneAddAfter(strtol(timeInput.buffer(),NULL,10));
+						anim.sceneForward();
+						
 						timeInput.clear();
 						
 						inputState = INPUT_DEFAULT;
@@ -381,7 +391,16 @@ int main(){
 					
 					break;
 				case INPUT_SET_SCENE_TIME:
+					if(event.type != sf::Event::TextEntered){
+						break;
+					}
 					
+					if(timeInput.interpret(event.text.unicode)){
+						anim.sceneSetLength(strtol(timeInput.buffer(),NULL,10));
+						timeInput.clear();
+						
+						inputState = INPUT_DEFAULT;
+					}
 					
 					break;
 				case INPUT_COUNT:

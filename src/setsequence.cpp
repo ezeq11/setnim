@@ -187,6 +187,37 @@ Renderable *SetSequence::getBuffer() const{
 	return buffer;
 }
 
+bool SetSequence::bufferInstant(temporal::val time) const{
+	std::list<TimedSet *>::const_iterator it = find(time);
+	
+	if(it == sets.begin()){
+		return false;
+	}
+	
+	TimedSet *end = *it;
+	TimedSet *begin = *(--it);
+	
+	float deltaT,deltaV;
+	deltaT = temporal::toFloat(time - begin->getTime()) / temporal::toFloat(end->getTime() - begin->getTime());
+	
+	for(unsigned int i = 0;i < SET_SIZE;++i){
+		deltaV = end->get(i) - begin->get(i);
+		
+		buffer->getBuffer()->set(i,begin->get(i) + interpolate(begin->getTransition(i),deltaT) * deltaV);
+	}
+	
+	return true;
+}
+
+bool SetSequence::bufferCurrent() const{
+	if(selected == sets.end()){
+		return false;
+	}
+	
+	buffer->getBuffer()->copyFrom(*(Set *)(*selected));
+	return true;
+}
+
 void SetSequence::add(temporal::val time){
 	sets.insert(find(time),new TimedSet(time));
 }
@@ -240,26 +271,6 @@ void SetSequence::move(temporal::val newTime){
 	sets.insert(newPosition,moved);
 	
 	selected = --newPosition;
-}
-
-void SetSequence::bufferInstant(temporal::val time) const{
-	std::list<TimedSet *>::const_iterator it = find(time);
-	
-	if(it == sets.begin()){
-		return;
-	}
-	
-	TimedSet *end = *it;
-	TimedSet *begin = *(--it);
-	
-	float deltaT,deltaV;
-	deltaT = temporal::toFloat(time - begin->getTime()) / temporal::toFloat(end->getTime() - begin->getTime());
-	
-	for(unsigned int i = 0;i < SET_SIZE;++i){
-		deltaV = end->get(i) - begin->get(i);
-		
-		buffer->getBuffer()->set(i,begin->get(i) + interpolate(begin->getTransition(i),deltaT) * deltaV);
-	}
 }
 
 #define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,temporal::toFloat((*it)->getTime() - begin) / temporal::toFloat(end - begin))

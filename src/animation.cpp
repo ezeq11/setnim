@@ -280,40 +280,67 @@ SetSequence *Animation::seqCurrent() const{
 
 int currentMarkerPos;
 
+temporal::val tallyTime,completeTime;
+unsigned int sceneCount;
+
 void drawRenderableMarker(Renderable *r,unsigned int i,bool isCurrent){
 	render::drawRenderableMarker(isCurrent,(int)i - currentMarkerPos);
 }
 
 void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
-	render::drawSceneMarker(isCurrent,(int)i - currentMarkerPos);
+	render::drawSceneMarker(
+		temporal::toFloat(tallyTime) / temporal::toFloat(completeTime),
+		temporal::toFloat(tallyTime + s->getLength()) / temporal::toFloat(completeTime),
+		isCurrent,
+		i + 1 != sceneCount
+	);
+	
+	tallyTime += s->getLength();
 }
 
 void Animation::drawMarkers() const{
 	currentMarkerPos = renderables.pos();
 	renderables.forAll(&drawRenderableMarker);
 	
-	currentMarkerPos = scenes.pos();
+	tallyTime = 0;
+	completeTime = length();
+	sceneCount = scenes.length();
+	
 	scenes.forAll(&drawSceneMarker);
 }
 
 // -------------------------------
 
+void (**renderFunctions)(const Set &,float);
+
+float renderTime;
+temporal::val currentFrame,seqTime;
+
 bool stillCurrentRenderableFrame;
 
 void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
-	if(isCurrent && stillCurrentRenderableFrame){
-		
-	}else{
-		// s->getSeq()->bufferInstant(time);
-		// s->getRenderable()->draw(time);
+	if((isCurrent && stillCurrentRenderableFrame && s->bufferCurrent()) || s->bufferInstant(seqTime)){
+		renderFunctions[s->getBuffer()->getRenderIndex()](*(s->getBuffer()->getBuffer()),renderTime);
 	}
 }
 
-void Animation::render(float time,bool stillActiveFrame) const{
-	if(scenes.current() == NULL){
-		return;
+void drawScene(Scene *s,unsigned int i,bool isCurrent){
+	if(currentFrame >= tallyTime && currentFrame < tallyTime + s->getLength()){
+		seqTime = currentFrame - tallyTime;
+		s->forAll(&drawSeqFrame);
+		
+		tallyTime += s->getLength();
 	}
+}
+
+void Animation::render(void (**renderers)(const Set &,float),float time,bool stillActiveFrame) const{
+	renderFunctions = renderers;
+	
+	tallyTime = 0;
+	renderTime = time;
+	currentFrame = temporal::fromFloat(time);
 	
 	stillCurrentRenderableFrame = stillActiveFrame;
-	scenes.current()->forAll(&drawSeqFrame);
+	
+	scenes.forAll(&drawScene);
 }

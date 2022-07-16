@@ -21,7 +21,7 @@
 		void drawView();
 		void drawUIBackground(float scrollBegin,float scrollEnd);
 		
-		void drawSceneMarker(bool highlighted,int x);
+		void drawSceneMarker(float begin,float end,bool highlighted,bool drawCap);
 		void drawSequenceBar(SequenceBar type,float x);
 		void drawRenderableMarker(bool highlighted,int x);
 		

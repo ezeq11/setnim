@@ -63,6 +63,8 @@
 			~SetSequence();
 			
 			Renderable *getBuffer() const;
+			bool bufferInstant(temporal::val time) const;
+			bool bufferCurrent() const;
 			
 			void add(temporal::val time);
 			
@@ -73,7 +75,6 @@
 			void remove();
 			void move(temporal::val newTime);
 			
-			void bufferInstant(temporal::val time) const;
 			void drawBar(temporal::val begin,temporal::val end) const;
 	};
 	

@@ -28,6 +28,14 @@ void Set::write(FILE *out) const{
 	}
 }
 
+Set *Set::copyFrom(const Set &s){
+	for(unsigned int i = 0;i < SET_SIZE;++i){
+		vals[i] = s.vals[i];
+	}
+	
+	return this;
+}
+
 float Set::get(unsigned int i) const{
 	return normalizedInt16::toFloat(vals[i]);
 }

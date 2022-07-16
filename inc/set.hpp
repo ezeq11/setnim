@@ -19,6 +19,8 @@
 			Set(FILE *in);
 			void write(FILE *out) const;
 			
+			Set *copyFrom(const Set &s);
+			
 			float get(unsigned int i) const;
 			Set *set(unsigned int i,float newVal);
 	};
