@@ -4,7 +4,9 @@
 
 #include "render.hpp"
 
-#define TEXT_SIZE 20
+#include "characters/main.hpp"
+
+#define TEXT_SIZE 18
 
 #define SCENE_MARKER_MARGIN 2
 #define SCENE_MARKER_HEIGHT (SCENE_HEIGHT - SCENE_MARKER_MARGIN - SCENE_MARKER_MARGIN)
@@ -17,13 +19,35 @@
 
 #define RENDERABLE_HEIGHT 20
 
-#define SCENE_HEIGHT (TEXT_SIZE * 2)
 
-#define TIME_DISPLAY_X_MARGIN 15
-#define TIME_DISPLAY_Y_MARGIN (TEXT_SIZE / 3.0)
+
+
+
+
+#define TIME_DISPLAY_TOP 0
 #define TIME_DISPLAY_WIDTH 120
+#define TIME_DISPLAY_X_MARGIN 15
+#define TIME_DISPLAY_Y_MARGIN 10
 
+#define SCENE_TOP 0
+#define SCENE_HEIGHT (TIME_DISPLAY_Y_MARGIN + TEXT_SIZE + TIME_DISPLAY_Y_MARGIN)
 #define SCENE_MARKER_CAP_WIDTH 2
+
+#define RENDERABLE_TOP (SCENE_HEIGHT)
+#define RENDERABLE_MARKER_DIAMETER 20
+#define RENDERABLE_MARKER_X_MARGIN 10
+#define RENDERABLE_MARKER_Y_MARGIN 10
+
+#define CHARACTER_LABEL_TOP (RENDERABLE_TOP + RENDERABLE_MARKER_Y_MARGIN + RENDERABLE_MARKER_DIAMETER + RENDERABLE_MARKER_Y_MARGIN)
+#define CHARACTER_LABEL_WIDTH 200
+#define CHARACTER_LABEL_X_MARGIN 15
+#define CHARACTER_LABEL_Y_MARGIN 10
+
+
+
+
+
+
 
 #define VIEW_TOP_BOTTOM_PADDING (SCENE_HEIGHT + RENDERABLE_HEIGHT + SCROLL_HEIGHT + SEQUENCE_HEIGHT)
 
@@ -36,6 +60,9 @@ namespace render{
 	sf::Font font;
 	
 	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted,sceneMarkerCap;
+	sf::CircleShape renderableMarker;
+	sf::RectangleShape characterLabelsBackground,characterLabelsSelection;
+	
 	sf::RectangleShape scrollBackground,scrollBar;
 	sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
 	sf::RectangleShape RenderableBackground;
@@ -112,6 +139,13 @@ namespace render{
 		sceneMarkerCap.setSize(sf::Vector2f(SCENE_MARKER_CAP_WIDTH,SCENE_HEIGHT));
 		sceneMarkerCap.setOrigin(SCENE_MARKER_CAP_WIDTH / 2.0,0);
 		
+		// Renderables
+		renderableMarker.setRadius(RENDERABLE_MARKER_DIAMETER / 2.0);
+		renderableMarker.setOrigin(RENDERABLE_MARKER_DIAMETER / 2.0,0.0);
+		
+		characterLabelsBackground.setFillColor(sf::Color(200,200,200,0xff));
+		characterLabelsSelection.setFillColor(sf::Color(161,125,50,0xff));
+		
 		// Scroll
 		scrollBackground.setFillColor(sf::Color(80,80,80,0xff));
 		scrollBar.setFillColor(sf::Color(200,200,200,0xff));
@@ -163,7 +197,7 @@ namespace render{
 		
 		// Scenes
 		sceneBackground.setSize(sf::Vector2f(winWidth,SCENE_HEIGHT));
-		sceneBackground.setPosition(left,-winHeight / 2.0);
+		sceneBackground.setPosition(left,-winHeight / 2.0 + SCENE_TOP);
 		window->draw(sceneBackground);
 		
 		// Sequence Scroll Bar
@@ -190,12 +224,12 @@ namespace render{
 		sf::RectangleShape *toDraw = highlighted ? &sceneMarkerHighlighted : &sceneMarker;
 		
 		toDraw->setSize(sf::Vector2f((winWidth - TIME_DISPLAY_WIDTH) * (end - begin),SCENE_HEIGHT));
-		toDraw->setPosition(-winWidth / 2.0 + TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * begin,-winHeight / 2.0);
+		toDraw->setPosition(-winWidth / 2.0 + TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * begin,-winHeight / 2.0 + SCENE_TOP);
 		
 		window->draw(*toDraw);
 		
 		if(drawCap){
-			sceneMarkerCap.setPosition(-winWidth / 2.0 + TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * end,-winHeight / 2.0);
+			sceneMarkerCap.setPosition(-winWidth / 2.0 + TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * end,-winHeight / 2.0 + SCENE_TOP);
 			window->draw(sceneMarkerCap);
 		}
 	}
@@ -222,19 +256,6 @@ namespace render{
 				break;
 			default:
 				break;
-		}
-	}
-	
-	void drawRenderableMarker(bool highlighted,int x){
-		float scrX = x * (SCENE_MARKER_WIDTH + SCENE_MARKER_MARGIN + SCENE_MARKER_MARGIN);
-		float scrY = winHeight / 2.0 - SCENE_HEIGHT - SCROLL_HEIGHT - SEQUENCE_HEIGHT - RENDERABLE_HEIGHT;
-		
-		if(highlighted){
-			sceneMarkerHighlighted.setPosition(scrX,scrY);
-			window->draw(sceneMarkerHighlighted);
-		}else{
-			sceneMarker.setPosition(scrX,scrY);
-			window->draw(sceneMarker);
 		}
 	}
 	
@@ -266,9 +287,43 @@ namespace render{
 		
 		// Draw
 		sf::Text display(std::string(timeDisplayBuffer),font,TEXT_SIZE);
-		display.setPosition(-winWidth / 2.0 + TIME_DISPLAY_X_MARGIN,-winHeight / 2.0 + TIME_DISPLAY_Y_MARGIN);
+		display.setPosition(-winWidth / 2.0 + TIME_DISPLAY_X_MARGIN,-winHeight / 2.0 + TIME_DISPLAY_TOP + TIME_DISPLAY_Y_MARGIN);
 		
 		window->draw(display);
+	}
+	
+	void drawRenderableMarker(bool highlighted,int x){
+		float scrX = x * (RENDERABLE_MARKER_X_MARGIN + RENDERABLE_MARKER_DIAMETER + RENDERABLE_MARKER_X_MARGIN);
+		float scrY = -winHeight / 2.0 + RENDERABLE_TOP + RENDERABLE_MARKER_Y_MARGIN;
+		
+		renderableMarker.setPosition(scrX,scrY);
+		renderableMarker.setFillColor(highlighted ? sf::Color(161,125,50,0xff) : sf::Color(160,160,160,0xff));
+		
+		window->draw(renderableMarker);
+	}
+	
+	void drawCharacterLabels(unsigned int current){
+		characterLabelsBackground.setSize(sf::Vector2f(CHARACTER_LABEL_WIDTH,CHARACTER_LABEL_Y_MARGIN + chars::count() * (TEXT_SIZE + CHARACTER_LABEL_Y_MARGIN)));
+		characterLabelsBackground.setPosition(-winWidth / 2.0,-winHeight / 2.0 + CHARACTER_LABEL_TOP);
+		
+		window->draw(characterLabelsBackground);
+		
+		for(unsigned int i = 0;i < chars::count();++i){
+			float x = -winWidth / 2.0 + CHARACTER_LABEL_X_MARGIN;
+			float y = -winHeight / 2.0 + CHARACTER_LABEL_TOP + CHARACTER_LABEL_Y_MARGIN + i * (CHARACTER_LABEL_Y_MARGIN + TEXT_SIZE);
+			
+			if(i == current){
+				characterLabelsSelection.setSize(sf::Vector2f(CHARACTER_LABEL_WIDTH,TEXT_SIZE + CHARACTER_LABEL_Y_MARGIN));
+				characterLabelsSelection.setPosition(-winWidth / 2.0,y - CHARACTER_LABEL_Y_MARGIN / 2.0);
+				
+				window->draw(characterLabelsSelection);
+			}
+			
+			sf::Text label(std::string(chars::label(i)),font,TEXT_SIZE);
+			label.setPosition(x,y);
+			
+			window->draw(label);
+		}
 	}
 	
 	namespace view{

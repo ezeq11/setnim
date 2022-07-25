@@ -15,6 +15,8 @@
 #include "animation.hpp"
 #include "textInput.hpp"
 
+#include "characters/main.hpp"
+
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
 
@@ -27,6 +29,9 @@ enum InputState{
 	INPUT_NEW_SCENE_TIME_BEFORE,
 	INPUT_NEW_SCENE_TIME_AFTER,
 	INPUT_SET_SCENE_TIME,
+	
+	INPUT_NEW_CHARACTER_BEFORE,
+	INPUT_NEW_CHARACTER_AFTER,
 	
 	INPUT_COUNT
 };
@@ -97,6 +102,8 @@ int main(){
 	bool isCtrlDown,isShiftDown;
 	
 	InputState inputState = INPUT_DEFAULT;
+	
+	unsigned int currentCharacter = 0;
 	float timeViewCursor;
 	
 	Animation anim;
@@ -177,7 +184,13 @@ int main(){
 		}
 		
 		switch(inputState){
-			case INPUT_DEFAULT:
+			case INPUT_NEW_SCENE_TIME_BEFORE:
+			case INPUT_NEW_SCENE_TIME_AFTER:
+			case INPUT_SET_SCENE_TIME:
+				render::drawTime(timeInput.buffer(),'_');
+				
+				break;
+			default:
 				if(anim.sceneAvailable()){
 					render::drawTime(anim.sceneGetLength(),' ');
 				}else{
@@ -185,13 +198,14 @@ int main(){
 				}
 				
 				break;
-			case INPUT_NEW_SCENE_TIME_BEFORE:
-			case INPUT_NEW_SCENE_TIME_AFTER:
-			case INPUT_SET_SCENE_TIME:
-				render::drawTime(timeInput.buffer(),'_');
+		}
+		
+		switch(inputState){
+			case INPUT_NEW_CHARACTER_BEFORE:
+			case INPUT_NEW_CHARACTER_AFTER:
+				render::drawCharacterLabels(currentCharacter);
 				
 				break;
-			case INPUT_COUNT:
 			default:
 				break;
 		}
@@ -232,7 +246,7 @@ int main(){
 								case sf::Keyboard::Left:
 									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 										if(isCtrlDown){
-											anim.renderablesAddBefore(0);
+											inputState = INPUT_NEW_CHARACTER_BEFORE;
 										}else{
 											anim.renderablesBackward();
 										}
@@ -251,7 +265,7 @@ int main(){
 								case sf::Keyboard::Right:
 									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
 										if(isCtrlDown){
-											anim.renderablesAddAfter(0);
+											inputState = INPUT_NEW_CHARACTER_AFTER;
 										}else{
 											anim.renderablesForward();
 										}
@@ -400,6 +414,40 @@ int main(){
 						timeInput.clear();
 						
 						inputState = INPUT_DEFAULT;
+					}
+					
+					break;
+				case INPUT_NEW_CHARACTER_BEFORE:
+				case INPUT_NEW_CHARACTER_AFTER:
+					if(event.type != sf::Event::KeyPressed){
+						break;
+					}
+					
+					switch(event.key.code){
+						case sf::Keyboard::Up:
+							if(currentCharacter > 0){
+								--currentCharacter;
+							}
+							
+							break;
+						case sf::Keyboard::Down:
+							if(currentCharacter + 1 < chars::count()){
+								++currentCharacter;
+							}
+							
+							break;
+						case sf::Keyboard::Enter:
+							if(inputState == INPUT_NEW_CHARACTER_BEFORE){
+								anim.renderablesAddBefore(currentCharacter);
+							}else{
+								anim.renderablesAddAfter(currentCharacter);
+							}
+							
+							inputState = INPUT_DEFAULT;
+							
+							break;
+						default:
+							break;
 					}
 					
 					break;

@@ -23,10 +23,12 @@
 		
 		void drawSceneMarker(float begin,float end,bool highlighted,bool drawCap);
 		void drawSequenceBar(SequenceBar type,float x);
-		void drawRenderableMarker(bool highlighted,int x);
 		
 		void drawTime(temporal::val time,char background);
 		void drawTime(const char *buffer,char background);
+		
+		void drawRenderableMarker(bool highlighted,int x);
+		void drawCharacterLabels(unsigned int current);
 		
 		namespace view{
 			void clear();
