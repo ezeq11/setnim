@@ -33,12 +33,12 @@
 #define SCENE_HEIGHT (TIME_DISPLAY_Y_MARGIN + TEXT_SIZE + TIME_DISPLAY_Y_MARGIN)
 #define SCENE_MARKER_CAP_WIDTH 2
 
-#define RENDERABLE_TOP (SCENE_HEIGHT)
-#define RENDERABLE_MARKER_DIAMETER 20
-#define RENDERABLE_MARKER_X_MARGIN 10
-#define RENDERABLE_MARKER_Y_MARGIN 10
+#define SEQ_TOP (SCENE_HEIGHT)
+#define SEQ_MARKER_DIAMETER 20
+#define SEQ_MARKER_X_MARGIN 10
+#define SEQ_MARKER_Y_MARGIN 10
 
-#define CHARACTER_LABEL_TOP (RENDERABLE_TOP + RENDERABLE_MARKER_Y_MARGIN + RENDERABLE_MARKER_DIAMETER + RENDERABLE_MARKER_Y_MARGIN)
+#define CHARACTER_LABEL_TOP (SEQ_TOP + SEQ_MARKER_Y_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_Y_MARGIN)
 #define CHARACTER_LABEL_WIDTH 200
 #define CHARACTER_LABEL_X_MARGIN 15
 #define CHARACTER_LABEL_Y_MARGIN 10
@@ -60,7 +60,7 @@ namespace render{
 	sf::Font font;
 	
 	sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted,sceneMarkerCap;
-	sf::CircleShape renderableMarker;
+	sf::CircleShape seqMarker;
 	sf::RectangleShape characterLabelsBackground,characterLabelsSelection;
 	
 	sf::RectangleShape scrollBackground,scrollBar;
@@ -140,8 +140,8 @@ namespace render{
 		sceneMarkerCap.setOrigin(SCENE_MARKER_CAP_WIDTH / 2.0,0);
 		
 		// Renderables
-		renderableMarker.setRadius(RENDERABLE_MARKER_DIAMETER / 2.0);
-		renderableMarker.setOrigin(RENDERABLE_MARKER_DIAMETER / 2.0,0.0);
+		seqMarker.setRadius(SEQ_MARKER_DIAMETER / 2.0);
+		seqMarker.setOrigin(SEQ_MARKER_DIAMETER / 2.0,0.0);
 		
 		characterLabelsBackground.setFillColor(sf::Color(200,200,200,0xff));
 		characterLabelsSelection.setFillColor(sf::Color(161,125,50,0xff));
@@ -292,14 +292,14 @@ namespace render{
 		window->draw(display);
 	}
 	
-	void drawRenderableMarker(bool highlighted,int x){
-		float scrX = x * (RENDERABLE_MARKER_X_MARGIN + RENDERABLE_MARKER_DIAMETER + RENDERABLE_MARKER_X_MARGIN);
-		float scrY = -winHeight / 2.0 + RENDERABLE_TOP + RENDERABLE_MARKER_Y_MARGIN;
+	void drawSequenceMarker(bool highlighted,int x){
+		float scrX = x * (SEQ_MARKER_X_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_X_MARGIN);
+		float scrY = -winHeight / 2.0 + SEQ_TOP + SEQ_MARKER_Y_MARGIN;
 		
-		renderableMarker.setPosition(scrX,scrY);
-		renderableMarker.setFillColor(highlighted ? sf::Color(161,125,50,0xff) : sf::Color(160,160,160,0xff));
+		seqMarker.setPosition(scrX,scrY);
+		seqMarker.setFillColor(highlighted ? sf::Color(161,125,50,0xff) : sf::Color(160,160,160,0xff));
 		
-		window->draw(renderableMarker);
+		window->draw(seqMarker);
 	}
 	
 	void drawCharacterLabels(unsigned int current){

@@ -125,25 +125,15 @@ std::list<SetSequence::TimedSet *>::const_iterator SetSequence::find(temporal::v
 	return it;
 }
 
-unsigned int SetSequence::find(Renderable **buffers,unsigned int bufferCount,Renderable *sought) const{
-	for(unsigned int i = 0;i < bufferCount;++i){
-		if(buffers[i] == sought){
-			return i;
-		}
-	}
-	
-	return bufferCount;
-}
-
 // ------------------------------------------------------------------------------------
 
-SetSequence::SetSequence(Renderable *newBuffer)
-:buffer(newBuffer),sets(),selected(sets.end()){
+SetSequence::SetSequence(unsigned int newRenderIndex)
+:renderIndex(newRenderIndex),buffer(),sets(),selected(sets.end()){
 	
 }
 
-SetSequence::SetSequence(FILE *in,Renderable **buffers,unsigned int bufferCount)
-:buffer(buffers[uInt32::read(in)]),sets(),selected(sets.end()){
+SetSequence::SetSequence(FILE *in)
+:renderIndex(uInt32::read(in)),buffer(),sets(),selected(sets.end()){
 	unsigned int seqSize = uInt32::read(in);
 	unsigned int selectionIndex = uInt32::read(in);
 	
@@ -160,14 +150,8 @@ SetSequence::SetSequence(FILE *in,Renderable **buffers,unsigned int bufferCount)
 	}
 }
 
-void SetSequence::write(FILE *out,Renderable **buffers,unsigned int bufferCount) const{
-	unsigned int bufferIndex = find(buffers,bufferCount,buffer);
-	
-	if(bufferIndex == bufferCount){
-		return;
-	}
-	
-	uInt32::write(out,(uint32_t)bufferIndex);
+void SetSequence::write(FILE *out) const{
+	uInt32::write(out,(uint32_t)renderIndex);
 	
 	uInt32::write(out,(uint32_t)sets.size());
 	uInt32::write(out,(uint32_t)std::distance(sets.begin(),(std::list<TimedSet *>::const_iterator)selected));
@@ -183,11 +167,15 @@ SetSequence::~SetSequence(){
 	}
 }
 
-Renderable *SetSequence::getBuffer() const{
-	return buffer;
+unsigned int SetSequence::getRenderIndex() const{
+	return renderIndex;
 }
 
-bool SetSequence::bufferInstant(temporal::val time) const{
+const Set *SetSequence::getBuffer() const{
+	return &buffer;
+}
+
+bool SetSequence::bufferInstant(temporal::val time){
 	std::list<TimedSet *>::const_iterator it = find(time);
 	
 	if(it == sets.begin()){
@@ -203,18 +191,18 @@ bool SetSequence::bufferInstant(temporal::val time) const{
 	for(unsigned int i = 0;i < SET_SIZE;++i){
 		deltaV = end->get(i) - begin->get(i);
 		
-		buffer->getBuffer()->set(i,begin->get(i) + interpolate(begin->getTransition(i),deltaT) * deltaV);
+		buffer.set(i,begin->get(i) + interpolate(begin->getTransition(i),deltaT) * deltaV);
 	}
 	
 	return true;
 }
 
-bool SetSequence::bufferCurrent() const{
+bool SetSequence::bufferCurrent(){
 	if(selected == sets.end()){
 		return false;
 	}
 	
-	buffer->getBuffer()->copyFrom(*(Set *)(*selected));
+	buffer.copyFrom(*(Set *)(*selected));
 	return true;
 }
 

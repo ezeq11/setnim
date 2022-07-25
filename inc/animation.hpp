@@ -1,6 +1,5 @@
 #ifndef ANIMATION_INCLUDED
 	#include "iterable.hpp"
-	#include "renderable.hpp"
 	#include "setsequence.hpp"
 	
 	class Scene: public PointerIterable<SetSequence>{
@@ -9,8 +8,8 @@
 			
 		public:
 			Scene(temporal::val newLength);
-			Scene(FILE *in,Renderable **buffers,unsigned int bufferCount);
-			void write(FILE *out,Renderable **buffers,unsigned int bufferCount) const;
+			Scene(FILE *in);
+			void write(FILE *out) const;
 			
 			temporal::val getLength() const;
 			void setLength(temporal::val newLength);
@@ -18,22 +17,12 @@
 	
 	class Animation{
 		private:
-			PointerIterable<Renderable> renderables;
 			PointerIterable<Scene> scenes;
 			
 		public:
 			Animation();
 			Animation(FILE *in);
 			void write(FILE *out) const;
-			
-			
-			
-			void renderablesAddBefore(unsigned int renderIndex);
-			void renderablesAddAfter(unsigned int renderIndex);
-			void renderablesForward();
-			void renderablesBackward();
-			void renderablesRemove();
-			void renderablesClear();
 			
 			
 			
@@ -52,8 +41,8 @@
 			
 			
 			
-			void seqAddBefore();
-			void seqAddAfter();
+			void seqAddBefore(unsigned int renderIndex);
+			void seqAddAfter(unsigned int renderIndex);
 			void seqForward();
 			void seqBackward();
 			void seqRemove();

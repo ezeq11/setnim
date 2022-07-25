@@ -30,8 +30,8 @@ enum InputState{
 	INPUT_NEW_SCENE_TIME_AFTER,
 	INPUT_SET_SCENE_TIME,
 	
-	INPUT_NEW_CHARACTER_BEFORE,
-	INPUT_NEW_CHARACTER_AFTER,
+	INPUT_NEW_SEQ_BEFORE,
+	INPUT_NEW_SEQ_AFTER,
 	
 	INPUT_COUNT
 };
@@ -201,8 +201,8 @@ int main(){
 		}
 		
 		switch(inputState){
-			case INPUT_NEW_CHARACTER_BEFORE:
-			case INPUT_NEW_CHARACTER_AFTER:
+			case INPUT_NEW_SEQ_BEFORE:
+			case INPUT_NEW_SEQ_AFTER:
 				render::drawCharacterLabels(currentCharacter);
 				
 				break;
@@ -244,11 +244,11 @@ int main(){
 									
 									break;
 								case sf::Keyboard::Left:
-									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
 										if(isCtrlDown){
-											inputState = INPUT_NEW_CHARACTER_BEFORE;
+											inputState = INPUT_NEW_SEQ_BEFORE;
 										}else{
-											anim.renderablesBackward();
+											anim.seqBackward();
 										}
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										if(isCtrlDown){
@@ -263,11 +263,11 @@ int main(){
 									
 									break;
 								case sf::Keyboard::Right:
-									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
 										if(isCtrlDown){
-											inputState = INPUT_NEW_CHARACTER_AFTER;
+											inputState = INPUT_NEW_SEQ_AFTER;
 										}else{
-											anim.renderablesForward();
+											anim.seqForward();
 										}
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										if(isCtrlDown){
@@ -282,8 +282,8 @@ int main(){
 									
 									break;
 								case sf::Keyboard::D:
-									if(sf::Keyboard::isKeyPressed(sf::Keyboard::C)){
-										anim.renderablesRemove();
+									if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
+										anim.seqRemove();
 										
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										anim.sceneRemove();
@@ -417,8 +417,8 @@ int main(){
 					}
 					
 					break;
-				case INPUT_NEW_CHARACTER_BEFORE:
-				case INPUT_NEW_CHARACTER_AFTER:
+				case INPUT_NEW_SEQ_BEFORE:
+				case INPUT_NEW_SEQ_AFTER:
 					if(event.type != sf::Event::KeyPressed){
 						break;
 					}
@@ -437,10 +437,10 @@ int main(){
 							
 							break;
 						case sf::Keyboard::Enter:
-							if(inputState == INPUT_NEW_CHARACTER_BEFORE){
-								anim.renderablesAddBefore(currentCharacter);
+							if(inputState == INPUT_NEW_SEQ_BEFORE){
+								anim.seqAddBefore(currentCharacter);
 							}else{
-								anim.renderablesAddAfter(currentCharacter);
+								anim.seqAddAfter(currentCharacter);
 							}
 							
 							inputState = INPUT_DEFAULT;

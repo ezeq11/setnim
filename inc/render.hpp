@@ -27,7 +27,7 @@
 		void drawTime(temporal::val time,char background);
 		void drawTime(const char *buffer,char background);
 		
-		void drawRenderableMarker(bool highlighted,int x);
+		void drawSequenceMarker(bool highlighted,int x);
 		void drawCharacterLabels(unsigned int current);
 		
 		namespace view{

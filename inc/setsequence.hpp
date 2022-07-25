@@ -2,7 +2,6 @@
 	#include <list>
 	
 	#include "set.hpp"
-	#include "renderable.hpp"
 	
 	enum Transition{
 		TRANSITION_X,
@@ -46,25 +45,27 @@
 					TimedSet *setTransition(unsigned int i,Transition newTransition);
 			};
 			
-			Renderable *buffer;
+			unsigned int renderIndex;
+			Set buffer;
 			
 			std::list<TimedSet *> sets;
 			std::list<TimedSet *>::iterator selected;
 			
 			std::list<TimedSet *>::iterator find(temporal::val time);
 			std::list<TimedSet *>::const_iterator find(temporal::val time) const;
-			unsigned int find(Renderable **buffers,unsigned int bufferCount,Renderable *sought) const;
-		
+			
 		public:
-			SetSequence(Renderable *newBuffer);
-			SetSequence(FILE *in,Renderable **buffers,unsigned int bufferCount);
-			void write(FILE *out,Renderable **buffers,unsigned int bufferCount) const;
+			SetSequence(unsigned int newRenderIndex);
+			SetSequence(FILE *in);
+			void write(FILE *out) const;
 			
 			~SetSequence();
 			
-			Renderable *getBuffer() const;
-			bool bufferInstant(temporal::val time) const;
-			bool bufferCurrent() const;
+			unsigned int getRenderIndex() const;
+			const Set *getBuffer() const;
+			
+			bool bufferInstant(temporal::val time);
+			bool bufferCurrent();
 			
 			void add(temporal::val time);
 			

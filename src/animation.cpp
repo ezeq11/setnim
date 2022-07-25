@@ -6,12 +6,12 @@ Scene::Scene(temporal::val newLength)
 	
 }
 
-Scene::Scene(FILE *in,Renderable **buffers,unsigned int bufferCount)
+Scene::Scene(FILE *in)
 :length(temporal::read(in)){
 	unsigned int seqCount = uInt32::read(in);
 	
 	for(unsigned int i = 0;i < seqCount;++i){
-		addBefore(new SetSequence(in,buffers,bufferCount));
+		addBefore(new SetSequence(in));
 	}
 	
 	for(unsigned int i = 0;i < seqCount;++i){
@@ -20,19 +20,17 @@ Scene::Scene(FILE *in,Renderable **buffers,unsigned int bufferCount)
 }
 
 FILE *fileIO;
-Renderable **bufferTable;
-unsigned int bufferTableSize;
 
 void writeSeq(SetSequence *s,unsigned int i,bool isCurrent){
-	s->write(fileIO,bufferTable,bufferTableSize);
+	s->write(fileIO);
 }
 
-void Scene::write(FILE *out,Renderable **buffers,unsigned int bufferCount) const{
+void Scene::write(FILE *out) const{
 	fileIO = out;
-	bufferTable = buffers;
-	bufferTableSize = bufferCount;
 	
 	temporal::write(out,length);
+	
+	uInt32::write(out,(uint32_t)PointerIterable<SetSequence>::length());
 	forAll(&writeSeq);
 }
 
@@ -51,110 +49,27 @@ Animation::Animation(){
 }
 
 Animation::Animation(FILE *in){
-	// Renderables
-	unsigned int renderablesCount = uInt32::read(in);
-	bufferTable = new Renderable *[renderablesCount];
-	
-	for(unsigned int i = 0;i < renderablesCount;++i){
-		bufferTable[i] = new Renderable(in);
-		
-		renderables.addBefore(bufferTable[i]);
-	}
-	
-	for(unsigned int i = 0;i < renderablesCount;++i){
-		renderables.backward();
-	}
-	
 	// Scenes
 	unsigned int scenesCount = uInt32::read(in);
 	
 	for(unsigned int i = 0;i < scenesCount;++i){
-		scenes.addBefore(new Scene(in,bufferTable,renderablesCount));
+		scenes.addBefore(new Scene(in));
 	}
 	
 	for(unsigned int i = 0;i < scenesCount;++i){
 		scenes.backward();
 	}
-	
-	delete[] bufferTable;
-}
-
-void writeRenderable(Renderable *r,unsigned int i,bool isCurrent){
-	r->write(fileIO);
-}
-
-void tableRenderable(Renderable *r,unsigned int i,bool isCurrent){
-	bufferTable[i] = r;
 }
 
 void writeScene(Scene *s,unsigned int i,bool isCurrent){
-	s->write(fileIO,bufferTable,bufferTableSize);
+	s->write(fileIO);
 }
 
 void Animation::write(FILE *out) const{
 	fileIO = out;
 	
-	// Renderables
-	uInt32::write(out,(uint32_t)renderables.length());
-	renderables.forAll(&writeRenderable);
-	
-	// Scenes
-	bufferTableSize = renderables.length();
-	bufferTable = new Renderable *[bufferTableSize];
-	renderables.forAll(&tableRenderable);
-	
 	uInt32::write(out,(uint32_t)scenes.length());
 	scenes.forAll(&writeScene);
-	
-	delete[] bufferTable;
-}
-
-// ------------------------------------------------------------------------------------
-
-void Animation::renderablesAddBefore(unsigned int renderIndex){
-	renderables.addBefore(new Renderable(renderIndex));
-}
-
-void Animation::renderablesAddAfter(unsigned int renderIndex){
-	renderables.addAfter(new Renderable(renderIndex));
-}
-
-void Animation::renderablesForward(){
-	renderables.forward();
-}
-
-void Animation::renderablesBackward(){
-	renderables.backward();
-}
-
-// -------------------------------
-
-Renderable *renderableToRemove;
-
-bool seqRemoveRenderable(SetSequence *s){
-	return s->getBuffer() == renderableToRemove;
-}
-
-void sceneRemoveRenderable(Scene *s,unsigned int i,bool isCurrent){
-	s->removeIf(&seqRemoveRenderable);
-}
-
-void Animation::renderablesRemove(){
-	renderableToRemove = renderables.current();
-	scenes.forAll(&sceneRemoveRenderable);
-	
-	renderables.remove();
-}
-
-// -------------------------------
-
-void emptyScene(Scene *s,unsigned int i,bool isCurrent){
-	s->clear();
-}
-
-void Animation::renderablesClear(){
-	scenes.forAll(&emptyScene);
-	renderables.clear();
 }
 
 // ------------------------------------------------------------------------------------
@@ -220,20 +135,20 @@ temporal::val Animation::length() const{
 
 // ------------------------------------------------------------------------------------
 
-void Animation::seqAddBefore(){
-	if(renderables.current() == NULL || scenes.current() == NULL){
+void Animation::seqAddBefore(unsigned int renderIndex){
+	if(scenes.current() == NULL){
 		return;
 	}
 	
-	scenes.current()->addBefore(new SetSequence(renderables.current()));
+	scenes.current()->addBefore(new SetSequence(renderIndex));
 }
 
-void Animation::seqAddAfter(){
-	if(renderables.current() == NULL || scenes.current() == NULL){
+void Animation::seqAddAfter(unsigned int renderIndex){
+	if(scenes.current() == NULL){
 		return;
 	}
 	
-	scenes.current()->addAfter(new SetSequence(renderables.current()));
+	scenes.current()->addAfter(new SetSequence(renderIndex));
 }
 
 void Animation::seqForward(){
@@ -283,10 +198,6 @@ int currentMarkerPos;
 temporal::val tallyTime,completeTime;
 unsigned int sceneCount;
 
-void drawRenderableMarker(Renderable *r,unsigned int i,bool isCurrent){
-	render::drawRenderableMarker(isCurrent,(int)i - currentMarkerPos);
-}
-
 void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
 	render::drawSceneMarker(
 		temporal::toFloat(tallyTime) / temporal::toFloat(completeTime),
@@ -298,15 +209,23 @@ void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
 	tallyTime += s->getLength();
 }
 
+void drawSequenceMarker(SetSequence *s,unsigned int i,bool isCurrent){
+	render::drawSequenceMarker(isCurrent,(int)i - currentMarkerPos);
+}
+
 void Animation::drawMarkers() const{
-	currentMarkerPos = renderables.pos();
-	renderables.forAll(&drawRenderableMarker);
-	
+	// Scenes
 	tallyTime = 0;
 	completeTime = length();
 	sceneCount = scenes.length();
 	
 	scenes.forAll(&drawSceneMarker);
+	
+	// Sequences
+	if(scenes.current() != NULL){
+		currentMarkerPos = scenes.current()->pos();
+		scenes.current()->forAll(&drawSequenceMarker);
+	}
 }
 
 // -------------------------------
@@ -316,11 +235,11 @@ void (**renderFunctions)(const Set &,float);
 float renderTime;
 temporal::val currentFrame,seqTime;
 
-bool stillCurrentRenderableFrame;
+bool stillCurrentSeqFrame;
 
 void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
-	if((isCurrent && stillCurrentRenderableFrame && s->bufferCurrent()) || s->bufferInstant(seqTime)){
-		renderFunctions[s->getBuffer()->getRenderIndex()](*(s->getBuffer()->getBuffer()),renderTime);
+	if((isCurrent && stillCurrentSeqFrame && s->bufferCurrent()) || s->bufferInstant(seqTime)){
+		renderFunctions[s->getRenderIndex()](*(s->getBuffer()),renderTime);
 	}
 }
 
@@ -340,7 +259,7 @@ void Animation::render(void (**renderers)(const Set &,float),float time,bool sti
 	renderTime = time;
 	currentFrame = temporal::fromFloat(time);
 	
-	stillCurrentRenderableFrame = stillActiveFrame;
+	stillCurrentSeqFrame = stillActiveFrame;
 	
 	scenes.forAll(&drawScene);
 }
