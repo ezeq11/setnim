@@ -1,28 +1,53 @@
 #include "renderers/main.hpp"
 
-#define RENDERERS_COUNT 3
+#include "renderers/ghostie.hpp"
+
+#define RENDERERS_COUNT 1
 
 namespace renderers{
+	// Variables ------------------------------------------
+	void (*inits[RENDERERS_COUNT])() = {
+		&(Ghostie::init)
+	};
+	
+	void (*renderers[RENDERERS_COUNT])(const Set &,float) = {
+		&(Ghostie::renderer)
+	};
+	
+	const char *labels[RENDERERS_COUNT] = {
+		"Ghostie"
+	};
+	
+	// Functions ------------------------------------------
 	unsigned int count(){
 		return RENDERERS_COUNT;
 	}
 	
-	const char *labels[RENDERERS_COUNT] = {
-		"Ghost 1",
-		"Ghost 2",
-		"Ghost 3"
-	};
+	void init(){
+		for(unsigned int i = 0;i < RENDERERS_COUNT;++i){
+			inits[i]();
+		}
+	}
+	
+	void (**get())(const Set &,float){
+		return renderers;
+	}
 	
 	const char *label(unsigned int currentRenderer){
 		return labels[currentRenderer];
 	}
 	
 	namespace sets{
-		const char *(*labels[RENDERERS_COUNT])(unsigned int);
+		// Variables ------------------------------------------
+		const char *(*labels[RENDERERS_COUNT])(unsigned int) = {
+			&(Ghostie::label)
+		};
 		
+		// Functions ------------------------------------------
 		const char *label(unsigned int renderer,unsigned int property){
-			return "---";
-			// return labels[i](j);
+			const char *received = labels[renderer](property);
+			
+			return received == NULL ? "---" : received;
 		}
 	}
 }

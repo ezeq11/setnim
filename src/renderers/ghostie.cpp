@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "ghostie.hpp"
+#include "renderers/ghostie.hpp"
 #include "render.hpp"
 
 namespace Ghostie{
@@ -32,6 +32,57 @@ namespace Ghostie{
 		bodyPointy.setPoint(3,sf::Vector2f(0.0,-sqrt(2.0)));
 		
 		body = &bodyNormal;
+	}
+	
+	Char charlie;
+	
+	void renderer(const Set &s,float time){
+		charlie.draw(s,time);
+	}
+	
+	const char *label(unsigned int i){
+		switch((Val)i){
+			case X:
+				return "x";
+			case Y:
+				return "y";
+			case SIZE:
+				return "size";
+			case BODY_SPEED:
+				return "body speed";
+			case SHELL_SCALE:
+				return "shell scale";
+			case SHELL_ROT:
+				return "shell rotation";
+			case EYELID_LL_POS:
+				return "eyelid ll position";
+			case EYELID_LU_POS:
+				return "eyelid lu position";
+			case EYELID_LU_ROT:
+				return "eyelid lu rotation";
+			case EYELID_RL_POS:
+				return "eyelid rl position";
+			case EYELID_RU_POS:
+				return "eyelid ru position";
+			case EYELID_RU_ROT:
+				return "eyelid ru rotation";
+			case FACE_DIST:
+				return "face distance";
+			case FACE_ROT:
+				return "face rotation";
+			case HAND_L_POS:
+				return "hand l position";
+			case HAND_L_ROT:
+				return "hand l rotation";
+			case HAND_R_POS:
+				return "hand r position";
+			case HAND_R_ROT:
+				return "hand r rotation";
+			default:
+				break;
+		}
+		
+		return NULL;
 	}
 	
 	float Char::getR(unsigned int i) const{

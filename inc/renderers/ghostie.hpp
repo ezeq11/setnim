@@ -63,6 +63,8 @@
 		const unsigned int PARTICLE_COUNT = 50;
 		
 		void init();
+		void renderer(const Set &s,float time);
+		const char *label(unsigned int i);
 		
 		class Char{
 			private:

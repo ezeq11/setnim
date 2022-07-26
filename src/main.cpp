@@ -9,13 +9,13 @@
 #include <SFML/Graphics.hpp>
 
 #include "render.hpp"
-#include "ghostie.hpp"
 #include "setsequence.hpp"
 #include "timeView.hpp"
 #include "animation.hpp"
 #include "textInput.hpp"
 
 #include "renderers/main.hpp"
+#include "renderers/ghostie.hpp"
 
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
@@ -93,7 +93,7 @@ int main(){
 		return EXIT_FAILURE;
 	}
 	
-	Ghostie::init();
+	renderers::init();
 	
 	render::resize(windowWidth,windowHeight);
 	
