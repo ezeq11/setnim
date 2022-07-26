@@ -8,16 +8,7 @@
 
 #define TEXT_SIZE 18
 
-#define SCROLL_HEIGHT 7
-
-#define SEQUENCE_HEIGHT 20
-
-#define PARAMETER_HEIGHT 15
-
-
-
-
-
+// Top UI
 #define TIME_DISPLAY_TOP 0
 #define TIME_DISPLAY_WIDTH 140
 #define TIME_DISPLAY_X_MARGIN 15
@@ -26,28 +17,38 @@
 #define SCENE_TOP 0
 #define SCENE_HEIGHT (TIME_DISPLAY_Y_MARGIN + TEXT_SIZE + TIME_DISPLAY_Y_MARGIN)
 
-#define SEQ_TOP (SCENE_HEIGHT)
+#define SEQ_MARKER_TOP (SCENE_HEIGHT)
 #define SEQ_MARKER_DIAMETER 20
-#define SEQ_MARKER_X_MARGIN 10
+#define SEQ_MARKER_X_MARGIN 20
 #define SEQ_MARKER_Y_MARGIN 10
+#define SEQ_MARKER_HEIGHT (SEQ_MARKER_Y_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_Y_MARGIN)
 
-#define CHARACTER_LABEL_TOP (SEQ_TOP + SEQ_MARKER_Y_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_Y_MARGIN)
+#define CHARACTER_LABEL_TOP (SEQ_MARKER_TOP + SEQ_MARKER_HEIGHT)
 #define CHARACTER_LABEL_WIDTH 200
 #define CHARACTER_LABEL_X_MARGIN 15
 #define CHARACTER_LABEL_Y_MARGIN 10
 
+// Bottom UI
+#define SCROLL_HEIGHT 8
+#define SCROLL_TOP SCROLL_HEIGHT
 
+#define SEQ_FRAME_HEIGHT 25
+#define SEQ_FRAME_TOP (SCROLL_HEIGHT + SEQ_FRAME_HEIGHT)
 
+#define PARAMETER_X_MARGIN 15
+#define PARAMETER_Y_MARGIN 6
+#define PARAMETER_HEIGHT (PARAMETER_Y_MARGIN + TEXT_SIZE + PARAMETER_Y_MARGIN)
+#define PARAMETER_TOP (SEQ_FRAME_TOP + PARAMETER_HEIGHT)
 
-
-
-
-#define VIEW_TOP_BOTTOM_PADDING (SCROLL_HEIGHT + SEQUENCE_HEIGHT + PARAMETER_HEIGHT)
+// UI Misc
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#define VIEW_TOP_BOTTOM_PADDING (MAX(SEQ_MARKER_TOP + SEQ_MARKER_HEIGHT,PARAMETER_TOP))
 
 namespace render{
 	// Variables --------------------------------------------------
 	sf::RenderWindow *window;
 	float winWidth,winHeight;
+	
 	sf::Vector2u dimensions;
 	
 	class UIBar{
@@ -102,10 +103,10 @@ namespace render{
 			}
 	};
 	
-	UIBar scenesBar       (true , SCENE_TOP                                          , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH , 0);
-	UIBar scrollBar       (false, SCROLL_HEIGHT                                      , SCROLL_HEIGHT    , 0                  , 0);
-	UIBar seqFramesBar    (false, SCROLL_HEIGHT + SEQUENCE_HEIGHT                    , SEQUENCE_HEIGHT  , 0                  , 0);
-	UIBar setParamaterBar (false, SCROLL_HEIGHT + SEQUENCE_HEIGHT + PARAMETER_HEIGHT , PARAMETER_HEIGHT , 0                  , 0);
+	UIBar scenesBar       (true , SCENE_TOP     , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH , 0);
+	UIBar scrollBar       (false, SCROLL_TOP    , SCROLL_HEIGHT    , 0                  , 0);
+	UIBar seqFramesBar    (false, SEQ_FRAME_TOP , SEQ_FRAME_HEIGHT , 0                  , 0);
+	UIBar setParamaterBar (false, PARAMETER_TOP , PARAMETER_HEIGHT , 0                  , 0);
 	
 	sf::Font font;
 	char textBuffer[128];
@@ -209,6 +210,7 @@ namespace render{
 		scrollBar.drawRectInterval(scrollBegin,scrollEnd,sf::Color(200,200,200,0xff));
 		
 		seqFramesBar.drawBackground(sf::Color(150,150,150,0xff));
+		setParamaterBar.drawBackground(sf::Color(100,100,100,0xff));
 	}
 	
 	void drawSceneMarker(float begin,float end,bool highlighted,bool drawCap){
@@ -274,10 +276,7 @@ namespace render{
 	}
 	
 	void drawSequenceMarker(bool highlighted,int x){
-		float scrX = winWidth / 2.0 + x * (SEQ_MARKER_X_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_X_MARGIN);
-		float scrY = SEQ_TOP + SEQ_MARKER_Y_MARGIN;
-		
-		seqMarker.setPosition(scrX,scrY);
+		seqMarker.setPosition(winWidth / 2.0 + x * (SEQ_MARKER_X_MARGIN + SEQ_MARKER_DIAMETER),SEQ_MARKER_TOP + SEQ_MARKER_Y_MARGIN);
 		seqMarker.setFillColor(highlighted ? sf::Color(161,125,50,0xff) : sf::Color(160,160,160,0xff));
 		
 		window->draw(seqMarker);
@@ -311,7 +310,7 @@ namespace render{
 		sprintf(textBuffer,"%2u: %s",property,chars::sets::label(character,property));
 		
 		sf::Text label(std::string(textBuffer),font,TEXT_SIZE);
-		label.setPosition(0.0,winHeight - SCROLL_HEIGHT - SEQUENCE_HEIGHT - TEXT_SIZE);
+		label.setPosition(PARAMETER_X_MARGIN,winHeight - PARAMETER_TOP + PARAMETER_Y_MARGIN);
 		
 		window->draw(label);
 	}
