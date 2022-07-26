@@ -169,9 +169,10 @@ int main(){
 			pose.set(Ghostie::EYELID_RU_ROT,expresses[lastExp].get(Ghostie::EYELID_RU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_RU_ROT) - expresses[lastExp].get(Ghostie::EYELID_RU_ROT)) * (delta / 0.15)));
 		}
 		
-		ghost.draw(pose,clock.getElapsedTime().asSeconds());
+		// ghost.draw(pose,clock.getElapsedTime().asSeconds());
 		
 		// Done
+		anim.render(renderers::get(),0.0,true);
 		render::drawView();
 		
 		render::UI::drawBackground();
