@@ -7,7 +7,7 @@
 	namespace render{
 		bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions,const char *fontFile);
 		
-		void resize();
+		void resize(float width,float height);
 		sf::Vector2u innerDimensions();
 		
 		void clear();
@@ -29,6 +29,8 @@
 		
 		void drawSequenceMarker(bool highlighted,int x);
 		void drawCharacterLabels(unsigned int current);
+		
+		void drawSetLabel(unsigned int character,unsigned int property);
 		
 		namespace view{
 			void clear();

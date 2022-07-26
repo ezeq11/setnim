@@ -40,11 +40,11 @@ namespace uInt16{
 
 namespace temporal{
 	float toFloat(val v){
-		return (float)v / 100;
+		return (float)v / 10000;
 	}
 	
 	val fromFloat(float v){
-		return v * 100;
+		return v * 10000;
 	}
 	
 	void write(FILE *out,val v){

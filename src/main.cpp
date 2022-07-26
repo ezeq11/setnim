@@ -50,9 +50,8 @@ Set expresses[EXP_COUNT];
 
 sf::RenderWindow window;
 
-void resizeContext(float width,float height){
-	window.setView(sf::View(sf::Vector2f(0.0,0.0),sf::Vector2f(width,height)));
-	render::resize();
+temporal::val normalizedFloatToSceneTime(float v,temporal::val sceneLen){
+	return temporal::fromFloat(v * temporal::toFloat(sceneLen));
 }
 
 bool timeInputAllowable(char c){
@@ -94,7 +93,7 @@ int main(){
 	
 	Ghostie::init();
 	
-	resizeContext(windowWidth,windowHeight);
+	render::resize(windowWidth,windowHeight);
 	
 	bool run = true;
 	
@@ -104,11 +103,11 @@ int main(){
 	InputState inputState = INPUT_DEFAULT;
 	
 	unsigned int currentCharacter = 0;
+	unsigned int currentProperty = 0;
 	float timeViewCursor;
 	
 	Animation anim;
 	TextInput<TIME_DISPLAY_LEN,&timeInputAllowable> timeInput;
-	// unsigned int currentProperty = 0;
 	
 	
 	
@@ -179,7 +178,7 @@ int main(){
 		anim.drawMarkers();
 		
 		if(anim.seqCurrent() != NULL){
-			anim.seqCurrent()->drawBar(timeView::getBegin(),timeView::getEnd());
+			anim.seqCurrent()->drawBar(normalizedFloatToSceneTime(timeView::getBegin(),anim.sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim.sceneGetLength()));
 			render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
 		}
 		
@@ -210,6 +209,8 @@ int main(){
 				break;
 		}
 		
+		render::drawSetLabel(currentCharacter,currentProperty);
+		
 		window.display();
 		
 		// Event Handling --------------------------------
@@ -228,19 +229,27 @@ int main(){
 							
 							break;
 						case sf::Event::Resized:
-							resizeContext(event.size.width,event.size.height);
+							render::resize(event.size.width,event.size.height);
 							
 							break;
 						case sf::Event::KeyPressed:
 							switch(event.key.code){
 								case sf::Keyboard::Up:
-									pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
-									pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
+									if(currentProperty + 1 < SET_SIZE){
+										++currentProperty;
+									}
+									
+									//pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
+									//pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
 									
 									break;
 								case sf::Keyboard::Down:
-									pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
-									pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
+									if(currentProperty > 0){
+										--currentProperty;
+									}
+									
+									//pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
+									//pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
 									
 									break;
 								case sf::Keyboard::Left:
@@ -316,23 +325,17 @@ int main(){
 						case sf::Event::MouseButtonPressed:
 							switch(event.mouseButton.button){
 								case sf::Mouse::Left:
-									{
-										float seqTime = timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin());
+									if(anim.seqCurrent() != NULL){
+										temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin()),anim.sceneGetLength());
 										
 										if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-											if(anim.seqCurrent() != NULL){
-												anim.seqCurrent()->add(seqTime);
-											}
+											anim.seqCurrent()->add(seqTime);
 											
 										}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-											if(anim.seqCurrent() != NULL){
-												anim.seqCurrent()->move(seqTime);
-											}
+											anim.seqCurrent()->move(seqTime);
 											
 										}else{
-											if(anim.seqCurrent() != NULL){
-												anim.seqCurrent()->select(seqTime);
-											}
+											anim.seqCurrent()->select(seqTime);
 										}
 									}
 									
