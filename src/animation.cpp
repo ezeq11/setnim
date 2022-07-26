@@ -199,7 +199,7 @@ temporal::val tallyTime,completeTime;
 unsigned int sceneCount;
 
 void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
-	render::drawSceneMarker(
+	render::UI::markers::drawScene(
 		temporal::toFloat(tallyTime) / temporal::toFloat(completeTime),
 		temporal::toFloat(tallyTime + s->getLength()) / temporal::toFloat(completeTime),
 		isCurrent,
@@ -210,7 +210,7 @@ void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
 }
 
 void drawSequenceMarker(SetSequence *s,unsigned int i,bool isCurrent){
-	render::drawSequenceMarker(isCurrent,(int)i - currentMarkerPos);
+	render::UI::markers::drawSequence(isCurrent,(int)i - currentMarkerPos);
 }
 
 void Animation::drawMarkers() const{

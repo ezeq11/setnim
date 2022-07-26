@@ -15,7 +15,7 @@
 #include "animation.hpp"
 #include "textInput.hpp"
 
-#include "characters/main.hpp"
+#include "renderers/main.hpp"
 
 #define PI 3.14159265
 #define GOLDEN_RATIO 1.618033
@@ -102,7 +102,7 @@ int main(){
 	
 	InputState inputState = INPUT_DEFAULT;
 	
-	unsigned int currentCharacter = 0;
+	unsigned int currentRenderer = 0;
 	unsigned int currentProperty = 0;
 	float timeViewCursor;
 	
@@ -173,27 +173,27 @@ int main(){
 		// Done
 		render::drawView();
 		
-		render::drawUIBackground(timeView::getBegin(),timeView::getEnd());
+		render::UI::drawBackground(timeView::getBegin(),timeView::getEnd());
 		
 		anim.drawMarkers();
 		
 		if(anim.seqCurrent() != NULL){
-			anim.seqCurrent()->drawBar(normalizedFloatToSceneTime(timeView::getBegin(),anim.sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim.sceneGetLength()));
-			render::drawSequenceBar(render::SEQ_BAR_CURSOR,timeViewCursor);
+			anim.seqCurrent()->drawMarkers(normalizedFloatToSceneTime(timeView::getBegin(),anim.sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim.sceneGetLength()));
+			render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,timeViewCursor);
 		}
 		
 		switch(inputState){
 			case INPUT_NEW_SCENE_TIME_BEFORE:
 			case INPUT_NEW_SCENE_TIME_AFTER:
 			case INPUT_SET_SCENE_TIME:
-				render::drawTime(timeInput.buffer(),'_');
+				render::UI::labels::drawTime(timeInput.buffer(),'_');
 				
 				break;
 			default:
 				if(anim.sceneAvailable()){
-					render::drawTime(anim.sceneGetLength(),' ');
+					render::UI::labels::drawTime(anim.sceneGetLength(),' ');
 				}else{
-					render::drawTime("",'-');
+					render::UI::labels::drawTime("",'-');
 				}
 				
 				break;
@@ -202,14 +202,14 @@ int main(){
 		switch(inputState){
 			case INPUT_NEW_SEQ_BEFORE:
 			case INPUT_NEW_SEQ_AFTER:
-				render::drawCharacterLabels(currentCharacter);
+				render::UI::labels::drawRenderers(currentRenderer);
 				
 				break;
 			default:
 				break;
 		}
 		
-		render::drawSetLabel(currentCharacter,currentProperty);
+		render::UI::labels::drawSetParameter(currentRenderer,currentProperty);
 		
 		window.display();
 		
@@ -428,22 +428,22 @@ int main(){
 					
 					switch(event.key.code){
 						case sf::Keyboard::Up:
-							if(currentCharacter > 0){
-								--currentCharacter;
+							if(currentRenderer > 0){
+								--currentRenderer;
 							}
 							
 							break;
 						case sf::Keyboard::Down:
-							if(currentCharacter + 1 < chars::count()){
-								++currentCharacter;
+							if(currentRenderer + 1 < renderers::count()){
+								++currentRenderer;
 							}
 							
 							break;
 						case sf::Keyboard::Enter:
 							if(inputState == INPUT_NEW_SEQ_BEFORE){
-								anim.seqAddBefore(currentCharacter);
+								anim.seqAddBefore(currentRenderer);
 							}else{
-								anim.seqAddAfter(currentCharacter);
+								anim.seqAddAfter(currentRenderer);
 							}
 							
 							inputState = INPUT_DEFAULT;

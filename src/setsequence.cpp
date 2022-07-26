@@ -261,9 +261,12 @@ void SetSequence::move(temporal::val newTime){
 	selected = --newPosition;
 }
 
-#define DRAW_ITERATOR() render::drawSequenceBar(it == selected ? render::SEQ_BAR_HIGHLIGHTED : render::SEQ_BAR_NORMAL,temporal::toFloat((*it)->getTime() - begin) / temporal::toFloat(end - begin))
+#define DRAW_ITERATOR() render::UI::markers::drawSeqFrame( \
+	it == selected ? render::UI::markers::SEQ_FRAME_HIGHLIGHTED : render::UI::markers::SEQ_FRAME_NORMAL, \
+	temporal::toFloat((*it)->getTime() - begin) / temporal::toFloat(end - begin) \
+)
 
-void SetSequence::drawBar(temporal::val begin,temporal::val end) const{
+void SetSequence::drawMarkers(temporal::val begin,temporal::val end) const{
 	std::list<TimedSet *>::const_iterator it = find(begin);
 	
 	if(it != sets.begin()){

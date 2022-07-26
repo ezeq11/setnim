@@ -76,7 +76,7 @@
 			void remove();
 			void move(temporal::val newTime);
 			
-			void drawBar(temporal::val begin,temporal::val end) const;
+			void drawMarkers(temporal::val begin,temporal::val end) const;
 	};
 	
 	#define SEQUENCE_INCLUDED
