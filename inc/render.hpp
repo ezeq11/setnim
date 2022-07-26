@@ -13,7 +13,18 @@
 		void drawView();
 		
 		namespace UI{
-			void drawBackground(float scrollBegin,float scrollEnd);
+			void updateCursorPos(int x,int y);
+			void drawBackground();
+			
+			namespace bars{
+				bool insideScenes();
+				bool insideSeqFrames();
+				bool insideSetParameter();
+				
+				float cursorValScenes();
+				float cursorValSeqFrames();
+				float cursorValSetParameter();
+			}
 			
 			namespace markers{
 				// Top UI
@@ -27,7 +38,12 @@
 					SEQ_FRAME_CURSOR
 				};
 				
+				void drawScroll(float begin,float end);
 				void drawSeqFrame(SequenceFrameMarker type,float x);
+				
+				void drawSetParameterBackground();
+				void drawSetParameterValue(float val,bool cursor);
+				void drawSetParameterZero();
 			}
 			
 			namespace labels{

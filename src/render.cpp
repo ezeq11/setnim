@@ -18,9 +18,9 @@
 #define SCENE_HEIGHT (TIME_DISPLAY_Y_MARGIN + TEXT_SIZE + TIME_DISPLAY_Y_MARGIN)
 
 #define SEQ_MARKER_TOP (SCENE_HEIGHT)
-#define SEQ_MARKER_DIAMETER 20
-#define SEQ_MARKER_X_MARGIN 20
-#define SEQ_MARKER_Y_MARGIN 10
+#define SEQ_MARKER_DIAMETER 24
+#define SEQ_MARKER_X_MARGIN 25
+#define SEQ_MARKER_Y_MARGIN 12
 #define SEQ_MARKER_HEIGHT (SEQ_MARKER_Y_MARGIN + SEQ_MARKER_DIAMETER + SEQ_MARKER_Y_MARGIN)
 
 #define RENDERER_LABEL_TOP (SEQ_MARKER_TOP + SEQ_MARKER_HEIGHT)
@@ -32,8 +32,10 @@
 #define SCROLL_HEIGHT 8
 #define SCROLL_TOP SCROLL_HEIGHT
 
-#define SEQ_FRAME_HEIGHT 25
+#define SEQ_FRAME_HEIGHT 27
 #define SEQ_FRAME_TOP (SCROLL_HEIGHT + SEQ_FRAME_HEIGHT)
+
+#define PARAMETER_LABEL_WIDTH 250
 
 #define PARAMETER_X_MARGIN 15
 #define PARAMETER_Y_MARGIN 6
@@ -69,11 +71,13 @@ namespace render{
 				}
 				
 				bool isInside(int x,int y) const{
-					return (y > top()) && (y < top() + (int)height) && (x > (int)lPadding) && (x < winWidth - (int)rPadding);
+					return (y > top()) && (y < top() + (int)height);
 				}
 				
 				float interpolated(float x)const {
-					return (float)(x - lPadding) / (float)(winWidth - lPadding - rPadding);
+					float val = (float)(x - lPadding) / (float)(winWidth - lPadding - rPadding);
+					
+					return val < 0.0 ? 0.0 : (val > 1.0 ? 1.0 : val);
 				}
 				
 				void drawBackground(const sf::Color &color) const{
@@ -104,16 +108,18 @@ namespace render{
 				}
 		};
 		
-		Bar scenesBar       (true , SCENE_TOP     , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH , 0);
-		Bar scrollBar       (false, SCROLL_TOP    , SCROLL_HEIGHT    , 0                  , 0);
-		Bar seqFramesBar    (false, SEQ_FRAME_TOP , SEQ_FRAME_HEIGHT , 0                  , 0);
-		Bar setParamaterBar (false, PARAMETER_TOP , PARAMETER_HEIGHT , 0                  , 0);
+		Bar scenesBar       (true , SCENE_TOP     , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH    , 0  );
+		Bar scrollBar       (false, SCROLL_TOP    , SCROLL_HEIGHT    , 0                     , 0  );
+		Bar seqFramesBar    (false, SEQ_FRAME_TOP , SEQ_FRAME_HEIGHT , 0                     , 0  );
+		Bar setParamaterBar (false, PARAMETER_TOP , PARAMETER_HEIGHT , PARAMETER_LABEL_WIDTH , 50 );
 		
 		sf::Font font;
 		char textBuffer[128];
 		
 		sf::CircleShape seqMarker;
 		sf::RectangleShape rendererLabelsBackground,rendererLabelsSelection;
+		
+		int cursorX,cursorY;
 	}
 	
 	namespace view{
@@ -206,14 +212,43 @@ namespace render{
 	}
 	
 	namespace UI{
-		void drawBackground(float scrollBegin,float scrollEnd){
+		void updateCursorPos(int x,int y){
+			cursorX = x;
+			cursorY = y;
+		}
+		
+		void drawBackground(){
 			scenesBar.drawBackground(sf::Color(100,100,100,0xff));
 			
 			scrollBar.drawBackground(sf::Color(80,80,80,0xff));
-			scrollBar.drawRectInterval(scrollBegin,scrollEnd,sf::Color(200,200,200,0xff));
-			
 			seqFramesBar.drawBackground(sf::Color(150,150,150,0xff));
 			setParamaterBar.drawBackground(sf::Color(100,100,100,0xff));
+		}
+		
+		namespace bars{
+			bool insideScenes(){
+				return scenesBar.isInside(cursorX,cursorY);
+			}
+			
+			bool insideSeqFrames(){
+				return seqFramesBar.isInside(cursorX,cursorY);
+			}
+			
+			bool insideSetParameter(){
+				return setParamaterBar.isInside(cursorX,cursorY);
+			}
+			
+			float cursorValScenes(){
+				return scenesBar.interpolated(cursorX);
+			}
+			
+			float cursorValSeqFrames(){
+				return seqFramesBar.interpolated(cursorX);
+			}
+			
+			float cursorValSetParameter(){
+				return setParamaterBar.interpolated(cursorX);
+			}
 		}
 		
 		namespace markers{
@@ -234,6 +269,10 @@ namespace render{
 			}
 			
 			// Bottom UI ----------------------
+			void drawScroll(float begin,float end){
+				scrollBar.drawRectInterval(begin,end,sf::Color(200,200,200,0xff));
+			}
+			
 			void drawSeqFrame(SequenceFrameMarker type,float x){
 				switch(type){
 					case SEQ_FRAME_NORMAL:
@@ -251,6 +290,18 @@ namespace render{
 					default:
 						break;
 				}
+			}
+			
+			void drawSetParameterBackground(){
+				setParamaterBar.drawRectInterval(0.0,1.0,sf::Color(160,160,160,0xff));
+			}
+			
+			void drawSetParameterValue(float val,bool cursor){
+				setParamaterBar.drawRectInterval(0.5,(val + 1.0) / 2.0,cursor ? sf::Color(100,  0,150,0xff) : sf::Color(160,100, 10,0xff));
+			}
+			
+			void drawSetParameterZero(){
+				setParamaterBar.drawRectCentered(0.5,4,sf::Color(100,100,100,0xff));
 			}
 		}
 		

@@ -106,7 +106,6 @@ int main(){
 	
 	unsigned int currentRenderer = 0;
 	unsigned int currentProperty = 0;
-	float timeViewCursor;
 	
 	Animation anim;
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
@@ -137,7 +136,7 @@ int main(){
 	float faceDist,faceRot;
 	
 	while(window.isOpen() && run){
-		timeViewCursor = (float)sf::Mouse::getPosition(window).x / (float)window.getView().getSize().x;
+		render::UI::updateCursorPos(sf::Mouse::getPosition(window).x,sf::Mouse::getPosition(window).y);
 		
 		// Drawing ---------------------------------------
 		window.clear(sf::Color(0,0,0,0xff));
@@ -175,14 +174,39 @@ int main(){
 		// Done
 		render::drawView();
 		
-		render::UI::drawBackground(timeView::getBegin(),timeView::getEnd());
-		
-		anim.drawMarkers();
+		render::UI::drawBackground();
+		render::UI::markers::drawScroll(timeView::getBegin(),timeView::getEnd());
 		
 		if(anim.seqCurrent() != NULL){
 			anim.seqCurrent()->drawMarkers(normalizedFloatToSceneTime(timeView::getBegin(),anim.sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim.sceneGetLength()));
-			render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,timeViewCursor);
+			
+			if(render::UI::bars::insideSeqFrames()){
+				render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,render::UI::bars::cursorValSeqFrames());
+			}
+			
+			if(anim.seqCurrent()->current() != NULL){
+				render::UI::markers::drawSetParameterBackground();
+				
+				if(render::UI::bars::insideSetParameter()){
+					float pX = anim.seqCurrent()->current()->get(currentProperty);
+					float cX = render::UI::bars::cursorValSetParameter() * 2.0 - 1.0;
+					
+					if(fabs(pX) < fabs(cX)){
+						render::UI::markers::drawSetParameterValue(cX,true);
+						render::UI::markers::drawSetParameterValue(pX,false);
+					}else{
+						render::UI::markers::drawSetParameterValue(pX,false);
+						render::UI::markers::drawSetParameterValue(cX,true);
+					}
+				}else{
+					render::UI::markers::drawSetParameterValue(anim.seqCurrent()->current()->get(currentProperty),false);
+				}
+				
+				render::UI::markers::drawSetParameterZero();
+			}
 		}
+		
+		anim.drawMarkers();
 		
 		switch(inputState){
 			case INPUT_NEW_SCENE_TIME_BEFORE:
@@ -332,17 +356,23 @@ int main(){
 						case sf::Event::MouseButtonPressed:
 							switch(event.mouseButton.button){
 								case sf::Mouse::Left:
-									if(anim.seqCurrent() != NULL){
-										temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + timeViewCursor * (timeView::getEnd() - timeView::getBegin()),anim.sceneGetLength());
-										
-										if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-											anim.seqCurrent()->add(seqTime);
+									if(render::UI::bars::insideSeqFrames()){
+										if(anim.seqCurrent() != NULL){
+											temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()),anim.sceneGetLength());
 											
-										}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-											anim.seqCurrent()->move(seqTime);
-											
-										}else{
-											anim.seqCurrent()->select(seqTime);
+											if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+												anim.seqCurrent()->add(seqTime);
+												
+											}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+												anim.seqCurrent()->move(seqTime);
+												
+											}else{
+												anim.seqCurrent()->select(seqTime);
+											}
+										}
+									}else if(render::UI::bars::insideSetParameter()){
+										if(anim.seqCurrent() != NULL && anim.seqCurrent()->current() != NULL){
+											anim.seqCurrent()->current()->set(currentProperty,render::UI::bars::cursorValSetParameter() * 2.0 - 1.0);
 										}
 									}
 									
