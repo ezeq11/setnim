@@ -108,17 +108,10 @@ namespace render{
 	UIBar setParamaterBar (false, SCROLL_HEIGHT + SEQUENCE_HEIGHT + PARAMETER_HEIGHT , PARAMETER_HEIGHT , 0                  , 0);
 	
 	sf::Font font;
+	char textBuffer[128];
 	
-	// sf::RectangleShape sceneBackground,sceneMarker,sceneMarkerHighlighted,sceneMarkerCap;
 	sf::CircleShape seqMarker;
 	sf::RectangleShape characterLabelsBackground,characterLabelsSelection;
-	
-	// sf::RectangleShape scrollBackground,scrollBarRect;
-	// sf::RectangleShape sequenceBackground,sequenceBar,sequenceBarHighlighted,sequenceBarCursor;
-	// sf::RectangleShape RenderableBackground;
-	
-	// sf::RectangleShape sceneBackground;
-	char textBuffer[128];
 	
 	namespace view{
 		sf::RenderTexture view;
@@ -176,55 +169,12 @@ namespace render{
 		view::viewBounds.setOutlineColor(sf::Color(0,0,0,0xff));
 		view::viewBounds.setOutlineThickness(5.0);
 		
-		// Scene
-		/*
-		sceneBackground.setFillColor(sf::Color(100,100,100,0xff));
-		
-		sceneMarker.setFillColor(sf::Color(160,160,160,0xff));
-		sceneMarker.setSize(sf::Vector2f(SCENE_MARKER_WIDTH,SCENE_MARKER_HEIGHT));
-		
-		sceneMarkerHighlighted.setFillColor(sf::Color(161,125,50,0xff));
-		sceneMarkerHighlighted.setSize(sf::Vector2f(SCENE_MARKER_WIDTH,SCENE_MARKER_HEIGHT));
-		
-		sceneMarkerCap.setFillColor(sf::Color(100,100,100,0xff));
-		sceneMarkerCap.setSize(sf::Vector2f(SCENE_MARKER_CAP_WIDTH,SCENE_HEIGHT));
-		sceneMarkerCap.setOrigin(SCENE_MARKER_CAP_WIDTH / 2.0,0);
-		*/
-		
-		// Renderables
+		// UI
 		seqMarker.setRadius(SEQ_MARKER_DIAMETER / 2.0);
 		seqMarker.setOrigin(SEQ_MARKER_DIAMETER / 2.0,0.0);
 		
 		characterLabelsBackground.setFillColor(sf::Color(200,200,200,0xff));
 		characterLabelsSelection.setFillColor(sf::Color(161,125,50,0xff));
-		
-		// Scroll
-		/*
-		scrollBackground.setFillColor(sf::Color(80,80,80,0xff));
-		scrollBarRect.setFillColor(sf::Color(200,200,200,0xff));
-		*/
-		
-		// Sequence
-		/*
-		sequenceBackground.setFillColor(sf::Color(150,150,150,0xff));
-		
-		sequenceBar.setFillColor(sf::Color(100,100,100,0xff));
-		sequenceBar.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
-		sequenceBar.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
-		
-		sequenceBarHighlighted.setFillColor(sf::Color(160,100,10,0xff));
-		sequenceBarHighlighted.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT));
-		sequenceBarHighlighted.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
-		
-		sequenceBarCursor.setFillColor(sf::Color(100,0,150,0xff));
-		sequenceBarCursor.setSize(sf::Vector2f(SEQUENCE_BAR_WIDTH,SEQUENCE_HEIGHT / 2.0));
-		sequenceBarCursor.setOrigin(SEQUENCE_BAR_WIDTH / 2.0,0.0);
-		*/
-		
-		// Renderables
-		/*
-		RenderableBackground.setFillColor(sf::Color(80,80,80,0xff));
-		*/
 		
 		return true;
 	}
@@ -253,37 +203,12 @@ namespace render{
 	}
 	
 	void drawUIBackground(float scrollBegin,float scrollEnd){
-		// Scenes
 		scenesBar.drawBackground(sf::Color(100,100,100,0xff));
-		/*
-		sceneBackground.setSize(sf::Vector2f(winWidth,SCENE_HEIGHT));
-		sceneBackground.setPosition(0.0,SCENE_TOP);
-		window->draw(sceneBackground);
-		*/
 		
-		// Sequence Scroll Bar
 		scrollBar.drawBackground(sf::Color(80,80,80,0xff));
-		/*
-		scrollBackground.setSize(sf::Vector2f(winWidth,SCROLL_HEIGHT));
-		scrollBackground.setPosition(0.0,winHeight - SCROLL_HEIGHT);
-		window->draw(scrollBackground);
-		*/
-		
 		scrollBar.drawRectInterval(scrollBegin,scrollEnd,sf::Color(200,200,200,0xff));
-		/*
-		scrollBarRect.setSize(sf::Vector2f((scrollEnd - scrollBegin) * winWidth,SCROLL_HEIGHT));
-		scrollBarRect.setPosition(scrollBegin * winWidth,winHeight - SCROLL_HEIGHT);
-		window->draw(scrollBarRect);
-		*/
-		
-		// Sequence Frames
 		
 		seqFramesBar.drawBackground(sf::Color(150,150,150,0xff));
-		/*
-		sequenceBackground.setSize(sf::Vector2f(winWidth,SEQUENCE_HEIGHT));
-		sequenceBackground.setPosition(0.0,winHeight - SCROLL_HEIGHT - SEQUENCE_HEIGHT);
-		window->draw(sequenceBackground);
-		*/
 	}
 	
 	void drawSceneMarker(float begin,float end,bool highlighted,bool drawCap){
@@ -292,20 +217,6 @@ namespace render{
 		if(drawCap){
 			scenesBar.drawRectCentered(end,4,sf::Color(100,100,100,0xff));
 		}
-		
-		/*
-		sf::RectangleShape *toDraw = highlighted ? &sceneMarkerHighlighted : &sceneMarker;
-		
-		toDraw->setSize(sf::Vector2f((winWidth - TIME_DISPLAY_WIDTH) * (end - begin),SCENE_HEIGHT));
-		toDraw->setPosition(TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * begin,SCENE_TOP);
-		
-		window->draw(*toDraw);
-		
-		if(drawCap){
-			sceneMarkerCap.setPosition(TIME_DISPLAY_WIDTH + (winWidth - TIME_DISPLAY_WIDTH) * end,SCENE_TOP);
-			window->draw(sceneMarkerCap);
-		}
-		*/
 	}
 	
 	void drawSequenceBar(SequenceBar type,float x){
@@ -325,31 +236,6 @@ namespace render{
 			default:
 				break;
 		}
-		
-		/*
-		float scrX = winWidth / 2.0 + (x - 0.5) * winWidth;
-		float scrY = winHeight - SCROLL_HEIGHT - SEQUENCE_HEIGHT;
-		
-		switch(type){
-			case SEQ_BAR_NORMAL:
-				sequenceBar.setPosition(scrX,scrY);
-				window->draw(sequenceBar);
-				
-				break;
-			case SEQ_BAR_HIGHLIGHTED:
-				sequenceBarHighlighted.setPosition(scrX,scrY);
-				window->draw(sequenceBarHighlighted);
-				
-				break;
-			case SEQ_BAR_CURSOR:
-				sequenceBarCursor.setPosition(scrX,scrY);
-				window->draw(sequenceBarCursor);
-				
-				break;
-			default:
-				break;
-		}
-		*/
 	}
 	
 	void drawTime(temporal::val time,char background){
