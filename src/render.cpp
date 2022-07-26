@@ -256,33 +256,29 @@ namespace render{
 		
 		namespace labels{
 			// Top UI -------------------------
-			void drawTime(temporal::val time,char background){
-				sprintf(textBuffer,"%03u",time);
+			void drawTime(temporal::val time,unsigned int minLen,char background){
+				textBuffer[0] = '\0';
+				temporal::str::appendDigits(textBuffer,time);
 				
-				drawTime(textBuffer,background);
+				drawTime(textBuffer,minLen,background);
 			}
 			
-			void drawTime(const char *buffer,char background){
-				// Get and sanitize length
+			void drawTime(const char *buffer,unsigned int minLen,char background){
+				// Ensure minimum length
 				unsigned int len = strlen(buffer);
-				len = (len > TIME_DISPLAY_LEN ? TIME_DISPLAY_LEN : len);
+				minLen = len > minLen ? len : minLen;
 				
-				// Move to a length of TIME_DISPLAY_LEN
-				memmove(textBuffer + (TIME_DISPLAY_LEN - len),buffer,len);
+				// Move to minimum length
+				memmove(textBuffer + (minLen - len),buffer,len + 1);
 				
 				// Pad beginning with background
-				for(unsigned int i = 0;i < (TIME_DISPLAY_LEN - len);++i){
+				for(unsigned int i = 0;i < (minLen - len);++i){
 					textBuffer[i] = background;
 				}
 				
-				// Insert decimal into string and format
-				textBuffer[TIME_DISPLAY_LEN + 2] = '\0';
-				textBuffer[TIME_DISPLAY_LEN + 1] = 's';
-				textBuffer[TIME_DISPLAY_LEN + 0] = textBuffer[TIME_DISPLAY_LEN - 1]; // ten-thousandths
-				textBuffer[TIME_DISPLAY_LEN - 1] = textBuffer[TIME_DISPLAY_LEN - 2]; // thousandths
-				textBuffer[TIME_DISPLAY_LEN - 2] = textBuffer[TIME_DISPLAY_LEN - 3]; // hundredths
-				textBuffer[TIME_DISPLAY_LEN - 3] = textBuffer[TIME_DISPLAY_LEN - 4]; // tens
-				textBuffer[TIME_DISPLAY_LEN - 4] = '.';
+				// Format
+				temporal::str::punctuate(textBuffer);
+				temporal::str::appendUnit(textBuffer);
 				
 				// Draw
 				sf::Text display(std::string(textBuffer),font,TEXT_SIZE);

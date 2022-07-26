@@ -20,6 +20,12 @@
 		
 		void write(FILE *out,val v);
 		val read(FILE *in);
+		
+		namespace str{
+			void appendDigits(char *str,val v);
+			void punctuate(char *str);
+			void appendUnit(char *str);
+		}
 	}
 	
 	namespace normalizedInt16{

@@ -23,6 +23,8 @@
 #define WINDOW_SCREEN_HEIGHT_RATIO 0.6
 #define WINDOW_SCREEN_WIDTH_RATIO 0.8
 
+#define TIME_DISPLAY_LENGTH 8
+
 enum InputState{
 	INPUT_DEFAULT,
 	
@@ -80,7 +82,7 @@ int main(){
 		windowWidth = (float)windowHeight * GOLDEN_RATIO;
 	}
 	
-	window.create(sf::VideoMode(windowWidth,windowHeight),"Ghostie Tiem",sf::Style::Default,glSettings);
+	window.create(sf::VideoMode(windowWidth,windowHeight),"Setnim",sf::Style::Default,glSettings);
 	
 	// Execution -----------------------------------------
 	timeView::init();
@@ -107,7 +109,7 @@ int main(){
 	float timeViewCursor;
 	
 	Animation anim;
-	TextInput<TIME_DISPLAY_LEN,&timeInputAllowable> timeInput;
+	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
 	
 	
 	
@@ -186,14 +188,14 @@ int main(){
 			case INPUT_NEW_SCENE_TIME_BEFORE:
 			case INPUT_NEW_SCENE_TIME_AFTER:
 			case INPUT_SET_SCENE_TIME:
-				render::UI::labels::drawTime(timeInput.buffer(),'_');
+				render::UI::labels::drawTime(timeInput.buffer(),TIME_DISPLAY_LENGTH,'_');
 				
 				break;
 			default:
 				if(anim.sceneAvailable()){
-					render::UI::labels::drawTime(anim.sceneGetLength(),' ');
+					render::UI::labels::drawTime(anim.sceneGetLength(),TIME_DISPLAY_LENGTH,' ');
 				}else{
-					render::UI::labels::drawTime("",'-');
+					render::UI::labels::drawTime("",TIME_DISPLAY_LENGTH,'.');
 				}
 				
 				break;
@@ -221,17 +223,22 @@ int main(){
 			
 			// if(anim.seqCurrent())
 			
+			switch(event.type){
+				case sf::Event::Closed:
+					run = false;
+					
+					break;
+				case sf::Event::Resized:
+					render::resize(event.size.width,event.size.height);
+					
+					break;
+				default:
+					break;
+			}
+			
 			switch(inputState){
 				case INPUT_DEFAULT:
 					switch(event.type){
-						case sf::Event::Closed:
-							run = false;
-							
-							break;
-						case sf::Event::Resized:
-							render::resize(event.size.width,event.size.height);
-							
-							break;
 						case sf::Event::KeyPressed:
 							switch(event.key.code){
 								case sf::Keyboard::Up:

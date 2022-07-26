@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "types.hpp"
 
 unsigned char get(FILE *in){
@@ -53,6 +55,30 @@ namespace temporal{
 	
 	val read(FILE *in){
 		return uInt32::read(in);
+	}
+	
+	namespace str{
+		void appendDigits(char *str,val v){
+			sprintf(str + strlen(str),"%05u",v);
+		}
+		
+		void punctuate(char *str){
+			unsigned int len = strlen(str);
+			
+			str[len + 1] = '\0';
+			str[len + 0] = str[len - 1]; // ten-thousandths
+			str[len - 1] = str[len - 2]; // thousandths
+			str[len - 2] = str[len - 3]; // hundredths
+			str[len - 3] = str[len - 4]; // tens
+			str[len - 4] = '.';
+		}
+		
+		void appendUnit(char *str){
+			unsigned int len = strlen(str);
+			
+			str[len + 1] = '\0';
+			str[len + 0] = 's';
+		}
 	}
 }
 

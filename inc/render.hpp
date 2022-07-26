@@ -1,7 +1,6 @@
 #ifndef RENDER_INCLUDED
 	#include <SFML/Graphics.hpp>
 	
-	#include "timeView.hpp"
 	#include "types.hpp"
 	
 	namespace render{
@@ -33,8 +32,8 @@
 			
 			namespace labels{
 				// Top UI
-				void drawTime(temporal::val time,char background);
-				void drawTime(const char *buffer,char background);
+				void drawTime(temporal::val time,unsigned int minLen,char background);
+				void drawTime(const char *buffer,unsigned int minLen,char background);
 				
 				void drawRenderers(unsigned int currentRenderer);
 				
