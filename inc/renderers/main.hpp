@@ -10,6 +10,8 @@
 		const char *label(unsigned int currentRenderer);
 		
 		namespace sets{
+			void init(unsigned int renderer,Set &s);
+			
 			const char *label(unsigned int renderer,unsigned int property);
 		}
 	}

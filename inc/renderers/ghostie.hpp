@@ -64,7 +64,11 @@
 		
 		void init();
 		void renderer(const Set &s,float time);
-		const char *label(unsigned int i);
+		
+		namespace set{
+			void init(Set &s);
+			const char *label(unsigned int i);
+		}
 		
 		class Char{
 			private:

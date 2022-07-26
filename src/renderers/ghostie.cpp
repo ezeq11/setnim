@@ -40,49 +40,55 @@ namespace Ghostie{
 		charlie.draw(s,time);
 	}
 	
-	const char *label(unsigned int i){
-		switch((Val)i){
-			case X:
-				return "x";
-			case Y:
-				return "y";
-			case SIZE:
-				return "size";
-			case BODY_SPEED:
-				return "body speed";
-			case SHELL_SCALE:
-				return "shell scale";
-			case SHELL_ROT:
-				return "shell rotation";
-			case EYELID_LL_POS:
-				return "eyelid ll position";
-			case EYELID_LU_POS:
-				return "eyelid lu position";
-			case EYELID_LU_ROT:
-				return "eyelid lu rotation";
-			case EYELID_RL_POS:
-				return "eyelid rl position";
-			case EYELID_RU_POS:
-				return "eyelid ru position";
-			case EYELID_RU_ROT:
-				return "eyelid ru rotation";
-			case FACE_DIST:
-				return "face distance";
-			case FACE_ROT:
-				return "face rotation";
-			case HAND_L_POS:
-				return "hand l position";
-			case HAND_L_ROT:
-				return "hand l rotation";
-			case HAND_R_POS:
-				return "hand r position";
-			case HAND_R_ROT:
-				return "hand r rotation";
-			default:
-				break;
+	namespace set{
+		void init(Set &s){
+			s.set(SIZE,0.5);
 		}
 		
-		return NULL;
+		const char *label(unsigned int i){
+			switch((Val)i){
+				case X:
+					return "x";
+				case Y:
+					return "y";
+				case SIZE:
+					return "size";
+				case BODY_SPEED:
+					return "body speed";
+				case SHELL_SCALE:
+					return "shell scale";
+				case SHELL_ROT:
+					return "shell rotation";
+				case EYELID_LL_POS:
+					return "eyelid ll position";
+				case EYELID_LU_POS:
+					return "eyelid lu position";
+				case EYELID_LU_ROT:
+					return "eyelid lu rotation";
+				case EYELID_RL_POS:
+					return "eyelid rl position";
+				case EYELID_RU_POS:
+					return "eyelid ru position";
+				case EYELID_RU_ROT:
+					return "eyelid ru rotation";
+				case FACE_DIST:
+					return "face distance";
+				case FACE_ROT:
+					return "face rotation";
+				case HAND_L_POS:
+					return "hand l position";
+				case HAND_L_ROT:
+					return "hand l rotation";
+				case HAND_R_POS:
+					return "hand r position";
+				case HAND_R_ROT:
+					return "hand r rotation";
+				default:
+					break;
+			}
+			
+			return NULL;
+		}
 	}
 	
 	float Char::getR(unsigned int i) const{
@@ -129,8 +135,8 @@ namespace Ghostie{
 		float rW = render::innerDimensions().x;
 		float rH = render::innerDimensions().y;
 		
-		float x = s.get(X) * rW;
-		float y = s.get(Y) * rH;
+		float x = s.get(X) * rW / 2.0;
+		float y = s.get(Y) * rH / 2.0;
 		float size = s.get(SIZE) * (rW < rH ? rW : rH);
 		
 		switch(style){

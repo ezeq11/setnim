@@ -39,11 +39,19 @@ namespace renderers{
 	
 	namespace sets{
 		// Variables ------------------------------------------
+		void (*inits[RENDERERS_COUNT])(Set &) = {
+			&(Ghostie::set::init)
+		};
+		
 		const char *(*labels[RENDERERS_COUNT])(unsigned int) = {
-			&(Ghostie::label)
+			&(Ghostie::set::label)
 		};
 		
 		// Functions ------------------------------------------
+		void init(unsigned int renderer,Set &s){
+			inits[renderer](s);
+		}
+		
 		const char *label(unsigned int renderer,unsigned int property){
 			const char *received = labels[renderer](property);
 			

@@ -3,6 +3,7 @@
 
 #include "setsequence.hpp"
 #include "render.hpp"
+#include "renderers/main.hpp"
 
 float interpolate(Transition t,float x){
 	switch(t){
@@ -207,7 +208,10 @@ bool SetSequence::bufferCurrent(){
 }
 
 void SetSequence::add(temporal::val time){
-	sets.insert(find(time),new TimedSet(time));
+	TimedSet *newTimedSet = new TimedSet(time);
+	renderers::sets::init(renderIndex,*newTimedSet);
+	
+	sets.insert(find(time),newTimedSet);
 }
 
 void SetSequence::select(temporal::val time){
