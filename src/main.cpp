@@ -40,18 +40,6 @@ enum InputState{
 	INPUT_COUNT
 };
 
-enum Expression{
-	EXP_BLANK,
-	EXP_ANGRY,
-	EXP_WORRIED,
-	EXP_BORED,
-	EXP_CHEERFUL,
-	
-	EXP_COUNT
-};
-
-Set expresses[EXP_COUNT];
-
 sf::RenderWindow window;
 
 temporal::val normalizedFloatToSceneTime(float v,temporal::val sceneLen){
@@ -113,31 +101,6 @@ int main(){
 	Animation anim;
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
 	
-	
-	
-	
-	sf::Time transfer = clock.getElapsedTime();
-	
-	Expression lastExp = EXP_BLANK;
-	Expression currExp = EXP_BLANK;
-	
-	Ghostie::Char ghost;
-	Set pose;
-	
-	pose.set(Ghostie::X,0.0)->set(Ghostie::Y,0.0)->set(Ghostie::SIZE,0.5)->set(Ghostie::BODY_SPEED,1.0);
-	
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_LU_POS,0.3)->set(Ghostie::EYELID_LU_ROT,-30.0 / 360.0);
-	expresses[EXP_ANGRY].set(Ghostie::EYELID_RU_POS,0.3)->set(Ghostie::EYELID_RU_ROT,30.0 / 360.0);
-	
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_LU_POS,0.3)->set(Ghostie::EYELID_LU_ROT,30.0 / 360.0);
-	expresses[EXP_WORRIED].set(Ghostie::EYELID_RU_POS,0.3)->set(Ghostie::EYELID_RU_ROT,-30.0 / 360.0);
-	
-	expresses[EXP_BORED].set(Ghostie::EYELID_LU_POS,0.2)->set(Ghostie::EYELID_RU_POS,0.2);
-	
-	expresses[EXP_CHEERFUL].set(Ghostie::EYELID_LL_POS,0.2)->set(Ghostie::EYELID_RL_POS,0.2);
-	
-	float faceDist,faceRot;
-	
 	while(window.isOpen() && run){
 		render::UI::updateCursorPos(sf::Mouse::getPosition(window).x,sf::Mouse::getPosition(window).y);
 		
@@ -148,36 +111,6 @@ int main(){
 		window.clear(sf::Color(0,0,0,0xff));
 		render::view::clear();
 		
-		// float pace = sin(clock.getElapsedTime().asSeconds());
-		faceDist = ((float)sf::Mouse::getPosition(window).x / (float)window.getSize().x) * 2.0 - 1.0;
-		faceDist = faceDist < -1.0 ? -1.0 : (faceDist > 1.0 ? 1.0 : faceDist);
-		
-		faceRot = ((float)sf::Mouse::getPosition(window).y / (float)window.getSize().y) * 2.0 - 1.0;
-		faceRot = faceRot < -1.0 ? -1.0 : (faceRot > 1.0 ? 1.0 : faceRot);
-		faceRot *= 90.0 / 360.0;
-		
-		if(faceDist > 0.0){
-			faceRot *= -1.0;
-		}
-		
-		pose.set(Ghostie::FACE_DIST,faceDist);
-		pose.set(Ghostie::FACE_ROT,faceRot);
-		
-		float delta = clock.getElapsedTime().asSeconds() - transfer.asSeconds();
-		
-		if(delta < 0.15){
-			pose.set(Ghostie::EYELID_LL_POS,expresses[lastExp].get(Ghostie::EYELID_LL_POS) + ((expresses[currExp].get(Ghostie::EYELID_LL_POS) - expresses[lastExp].get(Ghostie::EYELID_LL_POS)) * (delta / 0.15)));
-			pose.set(Ghostie::EYELID_LU_POS,expresses[lastExp].get(Ghostie::EYELID_LU_POS) + ((expresses[currExp].get(Ghostie::EYELID_LU_POS) - expresses[lastExp].get(Ghostie::EYELID_LU_POS)) * (delta / 0.15)));
-			pose.set(Ghostie::EYELID_LU_ROT,expresses[lastExp].get(Ghostie::EYELID_LU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_LU_ROT) - expresses[lastExp].get(Ghostie::EYELID_LU_ROT)) * (delta / 0.15)));
-			
-			pose.set(Ghostie::EYELID_RL_POS,expresses[lastExp].get(Ghostie::EYELID_RL_POS) + ((expresses[currExp].get(Ghostie::EYELID_RL_POS) - expresses[lastExp].get(Ghostie::EYELID_RL_POS)) * (delta / 0.15)));
-			pose.set(Ghostie::EYELID_RU_POS,expresses[lastExp].get(Ghostie::EYELID_RU_POS) + ((expresses[currExp].get(Ghostie::EYELID_RU_POS) - expresses[lastExp].get(Ghostie::EYELID_RU_POS)) * (delta / 0.15)));
-			pose.set(Ghostie::EYELID_RU_ROT,expresses[lastExp].get(Ghostie::EYELID_RU_ROT) + ((expresses[currExp].get(Ghostie::EYELID_RU_ROT) - expresses[lastExp].get(Ghostie::EYELID_RU_ROT)) * (delta / 0.15)));
-		}
-		
-		// ghost.draw(pose,clock.getElapsedTime().asSeconds());
-		
-		// Done
 		switch(inputState){
 			case INPUT_PLAY:
 				anim.render(renderers::get(),playTime,false);
@@ -272,8 +205,6 @@ int main(){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
-			// if(anim.seqCurrent())
-			
 			switch(event.type){
 				case sf::Event::Closed:
 					run = false;
@@ -297,17 +228,11 @@ int main(){
 										++currentProperty;
 									}
 									
-									//pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) - 0.05);
-									//pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) - 0.05);
-									
 									break;
 								case sf::Keyboard::Down:
 									if(currentProperty > 0){
 										--currentProperty;
 									}
-									
-									//pose.set(Ghostie::HAND_L_POS,pose.get(Ghostie::HAND_L_POS) + 0.05);
-									//pose.set(Ghostie::HAND_R_POS,pose.get(Ghostie::HAND_R_POS) + 0.05);
 									
 									break;
 								case sf::Keyboard::Left:
@@ -323,9 +248,6 @@ int main(){
 										}else{
 											anim.sceneBackward();
 										}
-									}else{
-										pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) - 1.0);
-										pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) - 1.0);
 									}
 									
 									break;
@@ -342,9 +264,6 @@ int main(){
 										}else{
 											anim.sceneForward();
 										}
-									}else{
-										pose.set(Ghostie::HAND_L_ROT,pose.get(Ghostie::HAND_L_ROT) + 1.0);
-										pose.set(Ghostie::HAND_R_ROT,pose.get(Ghostie::HAND_R_ROT) + 1.0);
 									}
 									
 									break;
@@ -368,13 +287,6 @@ int main(){
 											anim.seqCurrent()->remove();
 										}
 									}
-									
-									break;
-								case sf::Keyboard::E:
-									transfer = clock.getElapsedTime();
-									
-									lastExp = currExp;
-									currExp = (Expression)((currExp + 1) % EXP_COUNT);
 									
 									break;
 								case sf::Keyboard::W:
@@ -413,27 +325,6 @@ int main(){
 										if(anim.seqCurrent() != NULL && anim.seqCurrent()->current() != NULL){
 											anim.seqCurrent()->current()->set(currentProperty,render::UI::bars::cursorValSetParameter() * 2.0 - 1.0);
 										}
-									}
-									
-									break;
-								case sf::Mouse::Right:
-									ghost.setStyle((Ghostie::ParticleStyle)((ghost.getStyle() + 1) % Ghostie::PARTICLE_STYLE_COUNT));
-									
-									switch(ghost.getStyle()){
-										case Ghostie::PARTICLE_STYLE_NORMAL:
-											pose.set(Ghostie::BODY_SPEED,1.0);
-											
-											break;
-										case Ghostie::PARTICLE_STYLE_SOLID:
-											pose.set(Ghostie::BODY_SPEED,0.5);
-											
-											break;
-										case Ghostie::PARTICLE_STYLE_POINTY:
-											pose.set(Ghostie::BODY_SPEED,2.0);
-											
-											break;
-										case Ghostie::PARTICLE_STYLE_COUNT:
-											break;
 									}
 									
 									break;

@@ -43,6 +43,7 @@ namespace Ghostie{
 	namespace set{
 		void init(Set &s){
 			s.set(SIZE,0.5);
+			s.set(BODY_SPEED,1.0);
 		}
 		
 		const char *label(unsigned int i){
