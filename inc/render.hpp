@@ -29,6 +29,9 @@
 			namespace markers{
 				// Top UI
 				void drawScene(float begin,float end,bool highlighted,bool drawCap);
+				void drawScenesPlayTime(float begin,float end);
+				void drawScenesCursor(float x);
+				
 				void drawSequence(bool highlighted,int x);
 				
 				// Bottom UI

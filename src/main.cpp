@@ -35,6 +35,8 @@ enum InputState{
 	INPUT_NEW_SEQ_BEFORE,
 	INPUT_NEW_SEQ_AFTER,
 	
+	INPUT_PLAY,
+	
 	INPUT_COUNT
 };
 
@@ -85,34 +87,35 @@ int main(){
 	window.create(sf::VideoMode(windowWidth,windowHeight),"Setnim",sf::Style::Default,glSettings);
 	
 	// Execution -----------------------------------------
-	timeView::init();
-	
 	if(!render::init(window,sf::Vector2u(1920,1080),"share-tech-mono-regular.ttf")){
 		window.close();
 		
 		return EXIT_FAILURE;
 	}
 	
+	timeView::init();
 	renderers::init();
-	
 	render::resize(windowWidth,windowHeight);
 	
 	bool run = true;
+	bool isCtrlDown,isShiftDown;
 	
 	sf::Event event;
-	bool isCtrlDown,isShiftDown;
+	sf::Clock clock;
 	
 	InputState inputState = INPUT_DEFAULT;
 	
 	unsigned int currentRenderer = 0;
 	unsigned int currentProperty = 0;
+	float currentTime = 0.0;
+	float playTime;
 	
 	Animation anim;
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
 	
 	
 	
-	sf::Clock clock;
+	
 	sf::Time transfer = clock.getElapsedTime();
 	
 	Expression lastExp = EXP_BLANK;
@@ -137,6 +140,9 @@ int main(){
 	
 	while(window.isOpen() && run){
 		render::UI::updateCursorPos(sf::Mouse::getPosition(window).x,sf::Mouse::getPosition(window).y);
+		
+		playTime = currentTime + clock.getElapsedTime().asSeconds();
+		playTime = playTime > temporal::toFloat(anim.length()) ? temporal::toFloat(anim.length()) : playTime;
 		
 		// Drawing ---------------------------------------
 		window.clear(sf::Color(0,0,0,0xff));
@@ -172,10 +178,33 @@ int main(){
 		// ghost.draw(pose,clock.getElapsedTime().asSeconds());
 		
 		// Done
-		anim.render(renderers::get(),0.0,true);
+		switch(inputState){
+			case INPUT_PLAY:
+				anim.render(renderers::get(),playTime,false);
+				
+				break;
+			default:
+				anim.render(renderers::get(),currentTime,true);
+				
+				break;
+		}
+		
 		render::drawView();
 		
 		render::UI::drawBackground();
+		anim.drawMarkers();
+		
+		if(anim.sceneAvailable()){
+			float playBegin = currentTime / temporal::toFloat(anim.length());
+			float playEnd = playTime / temporal::toFloat(anim.length());
+			
+			if(inputState == INPUT_PLAY){
+				render::UI::markers::drawScenesPlayTime(playBegin,playEnd);
+			}
+			
+			render::UI::markers::drawScenesCursor(playBegin);
+		}
+		
 		render::UI::markers::drawScroll(timeView::getBegin(),timeView::getEnd());
 		
 		if(anim.seqCurrent() != NULL){
@@ -206,8 +235,6 @@ int main(){
 				render::UI::markers::drawSetParameterZero();
 			}
 		}
-		
-		anim.drawMarkers();
 		
 		switch(inputState){
 			case INPUT_NEW_SCENE_TIME_BEFORE:
@@ -241,9 +268,8 @@ int main(){
 		window.display();
 		
 		// Event Handling --------------------------------
-		if(window.pollEvent(event)){
+		if(window.pollEvent(event) || (inputState != INPUT_PLAY && window.waitEvent(event))){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
-			// isAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
 			// if(anim.seqCurrent())
@@ -322,6 +348,14 @@ int main(){
 									}
 									
 									break;
+								case sf::Keyboard::Space:
+									if(anim.sceneAvailable()){
+										clock.restart();
+										
+										inputState = INPUT_PLAY;
+									}
+									
+									break;
 								case sf::Keyboard::D:
 									if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
 										anim.seqRemove();
@@ -357,7 +391,11 @@ int main(){
 						case sf::Event::MouseButtonPressed:
 							switch(event.mouseButton.button){
 								case sf::Mouse::Left:
-									if(render::UI::bars::insideSeqFrames()){
+									if(render::UI::bars::insideScenes()){
+										if(anim.sceneAvailable()){
+											currentTime = render::UI::bars::cursorValScenes() * temporal::toFloat(anim.length());
+										}
+									}else if(render::UI::bars::insideSeqFrames()){
 										if(anim.seqCurrent() != NULL){
 											temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()),anim.sceneGetLength());
 											
@@ -484,6 +522,21 @@ int main(){
 								anim.seqAddAfter(currentRenderer);
 							}
 							
+							inputState = INPUT_DEFAULT;
+							
+							break;
+						default:
+							break;
+					}
+					
+					break;
+				case INPUT_PLAY:
+					if(event.type != sf::Event::KeyPressed){
+						break;
+					}
+					
+					switch(event.key.code){
+						case sf::Keyboard::Space:
 							inputState = INPUT_DEFAULT;
 							
 							break;

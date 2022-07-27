@@ -244,7 +244,7 @@ void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
 }
 
 void drawScene(Scene *s,unsigned int i,bool isCurrent){
-	if(currentFrame >= tallyTime && currentFrame < tallyTime + s->getLength()){
+	if(currentFrame >= tallyTime && (currentFrame < tallyTime + s->getLength() || (currentFrame == completeTime && completeTime == tallyTime + s->getLength()))){
 		seqTime = currentFrame - tallyTime;
 		s->forAll(&drawSeqFrame);
 		
@@ -256,6 +256,7 @@ void Animation::render(void (**renderers)(const Set &,float),float time,bool sti
 	renderFunctions = renderers;
 	
 	tallyTime = 0;
+	completeTime = length();
 	renderTime = time;
 	currentFrame = temporal::fromFloat(time);
 	

@@ -183,6 +183,11 @@ bool SetSequence::bufferInstant(temporal::val time){
 		return false;
 	}
 	
+	if(it == sets.end()){
+		buffer.copyFrom(*(Set *)(*(--it)));
+		return true;
+	}
+	
 	TimedSet *end = *it;
 	TimedSet *begin = *(--it);
 	

@@ -261,6 +261,14 @@ namespace render{
 				}
 			}
 			
+			void drawScenesPlayTime(float begin,float end){
+				scenesBar.drawRectInterval(begin,end,sf::Color(100,0,150,120));
+			}
+			
+			void drawScenesCursor(float x){
+				scenesBar.drawRectCentered(x,4,sf::Color(100,0,150,0xff));
+			}
+			
 			void drawSequence(bool highlighted,int x){
 				seqMarker.setPosition(winWidth / 2.0 + x * (SEQ_MARKER_X_MARGIN + SEQ_MARKER_DIAMETER),SEQ_MARKER_TOP + SEQ_MARKER_Y_MARGIN);
 				seqMarker.setFillColor(highlighted ? sf::Color(161,125,50,0xff) : sf::Color(160,160,160,0xff));
