@@ -196,7 +196,9 @@ int main(){
 				break;
 		}
 		
-		render::UI::labels::drawSetParameter(currentRenderer,currentProperty);
+		if(anim.seqCurrent() != NULL){
+			render::UI::labels::drawSetParameter(anim.seqCurrent()->getRenderIndex(),currentProperty);
+		}
 		
 		window.display();
 		
