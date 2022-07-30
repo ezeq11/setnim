@@ -389,6 +389,13 @@ namespace render{
 				
 				window->draw(label);
 			}
+			
+			void drawCommandLine(const char *prefix,const char *str){
+				sf::Text label(std::string(prefix) + std::string(str),font,TEXT_SIZE);
+				label.setPosition(PARAMETER_X_MARGIN,winHeight - PARAMETER_TOP - PARAMETER_Y_MARGIN - TEXT_SIZE);
+				
+				window->draw(label);
+			}
 		}
 	}
 	

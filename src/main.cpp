@@ -37,10 +37,14 @@ enum InputState{
 	
 	INPUT_PLAY,
 	
+	INPUT_READ_FILE_ENTER,
+	INPUT_READ_FILE_ACKNOWLEDGE,
+	
+	INPUT_WRITE_FILE_ENTER,
+	INPUT_WRITE_FILE_ACKNOWLEDGE,
+	
 	INPUT_COUNT
 };
-
-sf::RenderWindow window;
 
 temporal::val normalizedFloatToSceneTime(float v,temporal::val sceneLen){
 	return temporal::fromFloat(v * temporal::toFloat(sceneLen));
@@ -48,6 +52,10 @@ temporal::val normalizedFloatToSceneTime(float v,temporal::val sceneLen){
 
 bool timeInputAllowable(char c){
 	return isdigit(c);
+}
+
+bool commandLineAllowable(char c){
+	return isprint(c);
 }
 
 int main(){
@@ -72,7 +80,7 @@ int main(){
 		windowWidth = (float)windowHeight * GOLDEN_RATIO;
 	}
 	
-	window.create(sf::VideoMode(windowWidth,windowHeight),"Setnim",sf::Style::Default,glSettings);
+	sf::RenderWindow window(sf::VideoMode(windowWidth,windowHeight),"Setnim",sf::Style::Default,glSettings);
 	
 	// Execution -----------------------------------------
 	if(!render::init(window,sf::Vector2u(1920,1080),"share-tech-mono-regular.ttf")){
@@ -98,74 +106,83 @@ int main(){
 	float currentTime = 0.0;
 	float playTime;
 	
-	Animation anim;
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
+	TextInput<128,&commandLineAllowable> commandLineInput;
+	bool successfulIO;
+	
+	Animation *anim = NULL;
 	
 	while(window.isOpen() && run){
 		render::UI::updateCursorPos(sf::Mouse::getPosition(window).x,sf::Mouse::getPosition(window).y);
 		
-		playTime = currentTime + clock.getElapsedTime().asSeconds();
-		playTime = playTime > temporal::toFloat(anim.length()) ? temporal::toFloat(anim.length()) : playTime;
+		if(anim != NULL){
+			playTime = currentTime + clock.getElapsedTime().asSeconds();
+			playTime = playTime > temporal::toFloat(anim->length()) ? temporal::toFloat(anim->length()) : playTime;
+		}
 		
 		// Drawing ---------------------------------------
 		window.clear(sf::Color(0,0,0,0xff));
 		render::view::clear();
 		
-		switch(inputState){
-			case INPUT_PLAY:
-				anim.render(renderers::get(),playTime,false);
-				
-				break;
-			default:
-				anim.render(renderers::get(),currentTime,true);
-				
-				break;
+		if(anim != NULL){
+			switch(inputState){
+				case INPUT_PLAY:
+					anim->render(renderers::get(),playTime,false);
+					
+					break;
+				default:
+					anim->render(renderers::get(),currentTime,true);
+					
+					break;
+			}
 		}
 		
 		render::drawView();
-		
 		render::UI::drawBackground();
-		anim.drawMarkers();
 		
-		if(anim.sceneAvailable()){
-			float playBegin = currentTime / temporal::toFloat(anim.length());
-			float playEnd = playTime / temporal::toFloat(anim.length());
+		if(anim != NULL){
+			render::UI::markers::drawScroll(timeView::getBegin(),timeView::getEnd());
 			
-			if(inputState == INPUT_PLAY){
-				render::UI::markers::drawScenesPlayTime(playBegin,playEnd);
-			}
+			anim->drawMarkers();
 			
-			render::UI::markers::drawScenesCursor(playBegin);
-		}
-		
-		render::UI::markers::drawScroll(timeView::getBegin(),timeView::getEnd());
-		
-		if(anim.seqCurrent() != NULL){
-			anim.seqCurrent()->drawMarkers(normalizedFloatToSceneTime(timeView::getBegin(),anim.sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim.sceneGetLength()));
-			
-			if(render::UI::bars::insideSeqFrames()){
-				render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,render::UI::bars::cursorValSeqFrames());
-			}
-			
-			if(anim.seqCurrent()->current() != NULL){
-				render::UI::markers::drawSetParameterBackground();
+			if(anim->sceneAvailable()){
+				float playBegin = currentTime / temporal::toFloat(anim->length());
+				float playEnd = playTime / temporal::toFloat(anim->length());
 				
-				if(render::UI::bars::insideSetParameter()){
-					float pX = anim.seqCurrent()->current()->get(currentProperty);
-					float cX = render::UI::bars::cursorValSetParameter() * 2.0 - 1.0;
-					
-					if(fabs(pX) < fabs(cX)){
-						render::UI::markers::drawSetParameterValue(cX,true);
-						render::UI::markers::drawSetParameterValue(pX,false);
-					}else{
-						render::UI::markers::drawSetParameterValue(pX,false);
-						render::UI::markers::drawSetParameterValue(cX,true);
-					}
-				}else{
-					render::UI::markers::drawSetParameterValue(anim.seqCurrent()->current()->get(currentProperty),false);
+				if(inputState == INPUT_PLAY){
+					render::UI::markers::drawScenesPlayTime(playBegin,playEnd);
 				}
 				
-				render::UI::markers::drawSetParameterZero();
+				render::UI::markers::drawScenesCursor(playBegin);
+			}
+			
+			if(anim->seqCurrent() != NULL){
+				anim->seqCurrent()->drawMarkers(normalizedFloatToSceneTime(timeView::getBegin(),anim->sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim->sceneGetLength()));
+				
+				if(render::UI::bars::insideSeqFrames()){
+					render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,render::UI::bars::cursorValSeqFrames());
+				}
+				
+				if(anim->seqCurrent()->current() != NULL){
+					render::UI::markers::drawSetParameterBackground();
+					
+					if(render::UI::bars::insideSetParameter()){
+						float pX = anim->seqCurrent()->current()->get(currentProperty);
+						float cX = render::UI::bars::cursorValSetParameter() * 2.0 - 1.0;
+						
+						if(fabs(pX) < fabs(cX)){
+							render::UI::markers::drawSetParameterValue(cX,true);
+							render::UI::markers::drawSetParameterValue(pX,false);
+						}else{
+							render::UI::markers::drawSetParameterValue(pX,false);
+							render::UI::markers::drawSetParameterValue(cX,true);
+						}
+					}else{
+						render::UI::markers::drawSetParameterValue(anim->seqCurrent()->current()->get(currentProperty),false);
+					}
+					
+					render::UI::markers::drawSetParameterZero();
+				}
 			}
 		}
 		
@@ -177,8 +194,8 @@ int main(){
 				
 				break;
 			default:
-				if(anim.sceneAvailable()){
-					render::UI::labels::drawTime(anim.sceneGetLength(),TIME_DISPLAY_LENGTH,' ');
+				if(anim != NULL && anim->sceneAvailable()){
+					render::UI::labels::drawTime(anim->sceneGetLength(),TIME_DISPLAY_LENGTH,' ');
 				}else{
 					render::UI::labels::drawTime("",TIME_DISPLAY_LENGTH,'.');
 				}
@@ -196,9 +213,38 @@ int main(){
 				break;
 		}
 		
-		if(anim.seqCurrent() != NULL){
-			render::UI::labels::drawSetParameter(anim.seqCurrent()->getRenderIndex(),currentProperty);
-			render::UI::labels::drawTransition(anim.seqCurrent()->getTransition(currentProperty));
+		if(anim != NULL && anim->seqCurrent() != NULL){
+			render::UI::labels::drawSetParameter(anim->seqCurrent()->getRenderIndex(),currentProperty);
+			render::UI::labels::drawTransition(anim->seqCurrent()->getTransition(currentProperty));
+		}
+		
+		switch(inputState){
+			case INPUT_READ_FILE_ENTER:
+				render::UI::labels::drawCommandLine("read: ",commandLineInput.buffer());
+				
+				break;
+			case INPUT_READ_FILE_ACKNOWLEDGE:
+				if(successfulIO){
+					render::UI::labels::drawCommandLine("successfully read from: ",commandLineInput.buffer());
+				}else{
+					render::UI::labels::drawCommandLine("unable to read from: ",commandLineInput.buffer());
+				}
+				
+				break;
+			case INPUT_WRITE_FILE_ENTER:
+				render::UI::labels::drawCommandLine("write: ",commandLineInput.buffer());
+				
+				break;
+			case INPUT_WRITE_FILE_ACKNOWLEDGE:
+				if(successfulIO){
+					render::UI::labels::drawCommandLine("successfully written to: ",commandLineInput.buffer());
+				}else{
+					render::UI::labels::drawCommandLine("unable to write to: ",commandLineInput.buffer());
+				}
+				
+				break;
+			default:
+				break;
 		}
 		
 		window.display();
@@ -225,13 +271,47 @@ int main(){
 				case INPUT_DEFAULT:
 					switch(event.type){
 						case sf::Event::KeyPressed:
+							if(anim == NULL && isCtrlDown){
+								switch(event.key.code){
+									case sf::Keyboard::C:
+										anim = new Animation();
+										
+										break;
+									case sf::Keyboard::R:
+										inputState = INPUT_READ_FILE_ENTER;
+										
+										break;
+									default:
+										break;
+								}
+							}
+							
+							break;
+						case sf::Event::MouseWheelScrolled:
+							if(isShiftDown){
+								timeView::zoomBy(event.mouseWheelScroll.delta);
+							}else{
+								timeView::translateBy(event.mouseWheelScroll.delta / 10.0);
+							}
+							
+							break;
+						default:
+							break;
+					}
+					
+					if(anim == NULL){
+						break;
+					}
+					
+					switch(event.type){
+						case sf::Event::KeyPressed:
 							switch(event.key.code){
 								case sf::Keyboard::Up:
 									if(isShiftDown){
-										if(anim.seqCurrent() != NULL){
-											Transition newTransition = (Transition)((TRANSITION_COUNT + anim.seqCurrent()->getTransition(currentProperty) + 1) % TRANSITION_COUNT);
+										if(anim->seqCurrent() != NULL){
+											Transition newTransition = (Transition)((TRANSITION_COUNT + anim->seqCurrent()->getTransition(currentProperty) + 1) % TRANSITION_COUNT);
 											
-											anim.seqCurrent()->setTransition(currentProperty,newTransition);
+											anim->seqCurrent()->setTransition(currentProperty,newTransition);
 										}
 									}else{
 										if(currentProperty + 1 < SET_SIZE){
@@ -242,10 +322,10 @@ int main(){
 									break;
 								case sf::Keyboard::Down:
 									if(isShiftDown){
-										if(anim.seqCurrent() != NULL){
-											Transition newTransition = (Transition)((TRANSITION_COUNT + anim.seqCurrent()->getTransition(currentProperty) - 1) % TRANSITION_COUNT);
+										if(anim->seqCurrent() != NULL){
+											Transition newTransition = (Transition)((TRANSITION_COUNT + anim->seqCurrent()->getTransition(currentProperty) - 1) % TRANSITION_COUNT);
 											
-											anim.seqCurrent()->setTransition(currentProperty,newTransition);
+											anim->seqCurrent()->setTransition(currentProperty,newTransition);
 										}
 									}else{
 										if(currentProperty > 0){
@@ -259,13 +339,13 @@ int main(){
 										if(isCtrlDown){
 											inputState = INPUT_NEW_SEQ_BEFORE;
 										}else{
-											anim.seqBackward();
+											anim->seqBackward();
 										}
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										if(isCtrlDown){
 											inputState = INPUT_NEW_SCENE_TIME_BEFORE;
 										}else{
-											anim.sceneBackward();
+											anim->sceneBackward();
 										}
 									}
 									
@@ -275,19 +355,19 @@ int main(){
 										if(isCtrlDown){
 											inputState = INPUT_NEW_SEQ_AFTER;
 										}else{
-											anim.seqForward();
+											anim->seqForward();
 										}
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										if(isCtrlDown){
 											inputState = INPUT_NEW_SCENE_TIME_AFTER;
 										}else{
-											anim.sceneForward();
+											anim->sceneForward();
 										}
 									}
 									
 									break;
 								case sf::Keyboard::Space:
-									if(anim.sceneAvailable()){
+									if(anim->sceneAvailable()){
 										clock.restart();
 										
 										inputState = INPUT_PLAY;
@@ -296,21 +376,35 @@ int main(){
 									break;
 								case sf::Keyboard::D:
 									if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
-										anim.seqRemove();
+										anim->seqRemove();
 										
 									}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-										anim.sceneRemove();
+										anim->sceneRemove();
 										
 									}else if(isCtrlDown){
-										if(anim.seqCurrent() != NULL){
-											anim.seqCurrent()->remove();
+										if(anim->seqCurrent() != NULL){
+											anim->seqCurrent()->remove();
 										}
 									}
 									
 									break;
-								case sf::Keyboard::W:
+								case sf::Keyboard::T:
 									if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 										inputState = INPUT_SET_SCENE_TIME;
+									}
+									
+									break;
+								case sf::Keyboard::W:
+									if(isCtrlDown){
+										inputState = INPUT_WRITE_FILE_ENTER;
+									}
+									
+									break;
+								case sf::Keyboard::X:
+									if(isCtrlDown){
+										delete anim;
+										
+										anim = NULL;
 									}
 									
 									break;
@@ -323,29 +417,29 @@ int main(){
 							switch(event.mouseButton.button){
 								case sf::Mouse::Left:
 									if(render::UI::bars::insideScenes()){
-										if(anim.sceneAvailable()){
-											currentTime = render::UI::bars::cursorValScenes() * temporal::toFloat(anim.length());
+										if(anim->sceneAvailable()){
+											currentTime = render::UI::bars::cursorValScenes() * temporal::toFloat(anim->length());
 										}
 									}else if(render::UI::bars::insideSeqFrames()){
-										if(anim.seqCurrent() != NULL){
-											temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()),anim.sceneGetLength());
+										if(anim->seqCurrent() != NULL){
+											temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()),anim->sceneGetLength());
 											
 											if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-												anim.seqCurrent()->add(seqTime);
+												anim->seqCurrent()->add(seqTime);
 												
 											}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-												anim.seqCurrent()->move(seqTime);
+												anim->seqCurrent()->move(seqTime);
 												
 											}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
-												anim.seqCurrent()->duplicate(seqTime);
+												anim->seqCurrent()->duplicate(seqTime);
 												
 											}else{
-												anim.seqCurrent()->select(seqTime);
+												anim->seqCurrent()->select(seqTime);
 											}
 										}
 									}else if(render::UI::bars::insideSetParameter()){
-										if(anim.seqCurrent() != NULL && anim.seqCurrent()->current() != NULL){
-											anim.seqCurrent()->current()->set(currentProperty,render::UI::bars::cursorValSetParameter() * 2.0 - 1.0);
+										if(anim->seqCurrent() != NULL && anim->seqCurrent()->current() != NULL){
+											anim->seqCurrent()->current()->set(currentProperty,render::UI::bars::cursorValSetParameter() * 2.0 - 1.0);
 										}
 									}
 									
@@ -353,14 +447,6 @@ int main(){
 								default:
 									break;
 							}
-						case sf::Event::MouseWheelScrolled:
-							if(isShiftDown){
-								timeView::zoomBy(event.mouseWheelScroll.delta);
-							}else{
-								timeView::translateBy(event.mouseWheelScroll.delta / 10.0);
-							}
-							
-							break;
 						default:
 							break;
 					}
@@ -372,8 +458,8 @@ int main(){
 					}
 					
 					if(timeInput.interpret(event.text.unicode)){
-						anim.sceneAddBefore(strtol(timeInput.buffer(),NULL,10));
-						anim.sceneBackward();
+						anim->sceneAddBefore(strtol(timeInput.buffer(),NULL,10));
+						anim->sceneBackward();
 						
 						timeInput.clear();
 						
@@ -387,8 +473,8 @@ int main(){
 					}
 					
 					if(timeInput.interpret(event.text.unicode)){
-						anim.sceneAddAfter(strtol(timeInput.buffer(),NULL,10));
-						anim.sceneForward();
+						anim->sceneAddAfter(strtol(timeInput.buffer(),NULL,10));
+						anim->sceneForward();
 						
 						timeInput.clear();
 						
@@ -402,7 +488,7 @@ int main(){
 					}
 					
 					if(timeInput.interpret(event.text.unicode)){
-						anim.sceneSetLength(strtol(timeInput.buffer(),NULL,10));
+						anim->sceneSetLength(strtol(timeInput.buffer(),NULL,10));
 						timeInput.clear();
 						
 						inputState = INPUT_DEFAULT;
@@ -430,9 +516,9 @@ int main(){
 							break;
 						case sf::Keyboard::Enter:
 							if(inputState == INPUT_NEW_SEQ_BEFORE){
-								anim.seqAddBefore(currentRenderer);
+								anim->seqAddBefore(currentRenderer);
 							}else{
-								anim.seqAddAfter(currentRenderer);
+								anim->seqAddAfter(currentRenderer);
 							}
 							
 							inputState = INPUT_DEFAULT;
@@ -458,11 +544,69 @@ int main(){
 					}
 					
 					break;
+				case INPUT_READ_FILE_ENTER:
+					if(event.type != sf::Event::TextEntered){
+						break;
+					}
+					
+					if(commandLineInput.interpret(event.text.unicode)){
+						FILE *in = fopen(commandLineInput.buffer(),"rb");
+						
+						if(in == NULL){
+							successfulIO = false;
+							inputState = INPUT_READ_FILE_ACKNOWLEDGE;
+							
+							break;
+						}
+						
+						anim = new Animation(in);
+						fclose(in);
+						
+						successfulIO = true;
+						inputState = INPUT_READ_FILE_ACKNOWLEDGE;
+					}
+					
+					break;
+				case INPUT_WRITE_FILE_ENTER:
+					if(event.type != sf::Event::TextEntered){
+						break;
+					}
+					
+					if(commandLineInput.interpret(event.text.unicode)){
+						FILE *out = fopen(commandLineInput.buffer(),"wb");
+						
+						if(out == NULL){
+							successfulIO = false;
+							inputState = INPUT_WRITE_FILE_ACKNOWLEDGE;
+							
+							break;
+						}
+						
+						anim->write(out);
+						fclose(out);
+						
+						successfulIO = true;
+						inputState = INPUT_WRITE_FILE_ACKNOWLEDGE;
+					}
+					
+					break;
+				case INPUT_READ_FILE_ACKNOWLEDGE:
+				case INPUT_WRITE_FILE_ACKNOWLEDGE:
+					if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter){
+						commandLineInput.clear();
+						inputState = INPUT_DEFAULT;
+					}
+					
+					break;
 				case INPUT_COUNT:
 				default:
 					break;
 			}
 		}
+	}
+	
+	if(anim != NULL){
+		delete anim;
 	}
 	
 	window.close();

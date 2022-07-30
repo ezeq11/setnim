@@ -60,6 +60,7 @@
 				// Bottom UI
 				void drawSetParameter(unsigned int renderer,unsigned int property);
 				void drawTransition(Transition t);
+				void drawCommandLine(const char *prefix,const char *str);
 			}
 		}
 		

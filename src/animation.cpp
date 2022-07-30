@@ -11,7 +11,8 @@ Scene::Scene(FILE *in)
 	unsigned int seqCount = uInt32::read(in);
 	
 	for(unsigned int i = 0;i < seqCount;++i){
-		addBefore(new SetSequence(in));
+		addAfter(new SetSequence(in));
+		forward();
 	}
 	
 	for(unsigned int i = 0;i < seqCount;++i){
@@ -53,7 +54,8 @@ Animation::Animation(FILE *in){
 	unsigned int scenesCount = uInt32::read(in);
 	
 	for(unsigned int i = 0;i < scenesCount;++i){
-		scenes.addBefore(new Scene(in));
+		scenes.addAfter(new Scene(in));
+		scenes.forward();
 	}
 	
 	for(unsigned int i = 0;i < scenesCount;++i){
