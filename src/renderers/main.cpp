@@ -48,8 +48,10 @@ namespace renderers{
 		};
 		
 		// Functions ------------------------------------------
-		void init(unsigned int renderer,Set &s){
+		Set &init(unsigned int renderer,Set &s){
 			inits[renderer](s);
+			
+			return s;
 		}
 		
 		const char *label(unsigned int renderer,unsigned int property){

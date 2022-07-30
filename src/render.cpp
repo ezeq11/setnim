@@ -36,6 +36,7 @@
 #define SEQ_FRAME_TOP (SCROLL_HEIGHT + SEQ_FRAME_HEIGHT)
 
 #define PARAMETER_LABEL_WIDTH 275
+#define TRANSITION_LABEL_WIDTH 200
 
 #define PARAMETER_X_MARGIN 15
 #define PARAMETER_Y_MARGIN 6
@@ -108,10 +109,10 @@ namespace render{
 				}
 		};
 		
-		Bar scenesBar       (true , SCENE_TOP     , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH    , 0  );
-		Bar scrollBar       (false, SCROLL_TOP    , SCROLL_HEIGHT    , 0                     , 0  );
-		Bar seqFramesBar    (false, SEQ_FRAME_TOP , SEQ_FRAME_HEIGHT , 0                     , 0  );
-		Bar setParamaterBar (false, PARAMETER_TOP , PARAMETER_HEIGHT , PARAMETER_LABEL_WIDTH , 50 );
+		Bar scenesBar       (true , SCENE_TOP     , SCENE_HEIGHT     , TIME_DISPLAY_WIDTH    , 0                      );
+		Bar scrollBar       (false, SCROLL_TOP    , SCROLL_HEIGHT    , 0                     , 0                      );
+		Bar seqFramesBar    (false, SEQ_FRAME_TOP , SEQ_FRAME_HEIGHT , 0                     , 0                      );
+		Bar setParamaterBar (false, PARAMETER_TOP , PARAMETER_HEIGHT , PARAMETER_LABEL_WIDTH , TRANSITION_LABEL_WIDTH );
 		
 		sf::Font font;
 		char textBuffer[128];
@@ -376,6 +377,15 @@ namespace render{
 				
 				sf::Text label(std::string(textBuffer),font,TEXT_SIZE);
 				label.setPosition(PARAMETER_X_MARGIN,winHeight - PARAMETER_TOP + PARAMETER_Y_MARGIN);
+				
+				window->draw(label);
+			}
+			
+			void drawTransition(Transition t){
+				const char *received = labelTransition(t);
+				
+				sf::Text label(std::string(received == NULL ? "---" : received),font,TEXT_SIZE);
+				label.setPosition(winWidth - TRANSITION_LABEL_WIDTH + PARAMETER_X_MARGIN,winHeight - PARAMETER_TOP + PARAMETER_Y_MARGIN);
 				
 				window->draw(label);
 			}

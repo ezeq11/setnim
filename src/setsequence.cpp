@@ -5,6 +5,46 @@
 #include "render.hpp"
 #include "renderers/main.hpp"
 
+const char *labelTransition(Transition t){
+	switch(t){
+		case TRANSITION_X:
+			return "x";
+			
+		case TRANSITION_X_SQUARED:
+			return "x^2";
+			
+		case TRANSITION_X_CUBED:
+			return "x^3";
+			
+		case TRANSITION_SIN:
+			return "sin(x)";
+			
+		case TRANSITION_SIN_SQUARED:
+			return "sin(x)^2";
+			
+		case TRANSITION_SIN_CUBED:
+			return "sin(x)^3";
+			
+		case TRANSITION_CIRCLE_CONVEX:
+			return "convex circle";
+			
+		case TRANSITION_CIRCLE_CONCAVE:
+			return "concave circle";
+			
+		case TRANSITION_ZERO:
+			return "0";
+			
+		case TRANSITION_ONE:
+			return "1";
+			
+		case TRANSITION_COUNT:
+		default:
+			break;
+	}
+	
+	return NULL;
+}
+
 float interpolate(Transition t,float x){
 	switch(t){
 		case TRANSITION_X:
@@ -74,34 +114,46 @@ void SetSequence::TimedSet::write(FILE *out) const{
 	}
 }
 
+SetSequence::TimedSet &SetSequence::TimedSet::copyFrom(const TimedSet &t){
+	Set::copyFrom(t);
+	
+	time = t.time;
+	
+	for(unsigned int i = 0;i < SET_SIZE;++i){
+		transitions[i] = t.transitions[i];
+	}
+	
+	return *this;
+}
+
 temporal::val SetSequence::TimedSet::getTime() const{
 	return time;
 }
 
-SetSequence::TimedSet *SetSequence::TimedSet::setTime(temporal::val newTime){
+SetSequence::TimedSet &SetSequence::TimedSet::setTime(temporal::val newTime){
 	time = newTime;
 	
-	return this;
+	return *this;
 }
 
 float SetSequence::TimedSet::get(unsigned int i) const{
 	return Set::get(i);
 }
 
-SetSequence::TimedSet *SetSequence::TimedSet::set(unsigned int i,float newVal){
+SetSequence::TimedSet &SetSequence::TimedSet::set(unsigned int i,float newVal){
 	Set::set(i,newVal);
 	
-	return this;
+	return *this;
 }
 
 Transition SetSequence::TimedSet::getTransition(unsigned int i) const{
 	return transitions[i];
 }
 
-SetSequence::TimedSet *SetSequence::TimedSet::setTransition(unsigned int i,Transition newTransition){
+SetSequence::TimedSet &SetSequence::TimedSet::setTransition(unsigned int i,Transition newTransition){
 	transitions[i] = newTransition;
 	
-	return this;
+	return *this;
 }
 
 // ====================================================================================
@@ -172,8 +224,8 @@ unsigned int SetSequence::getRenderIndex() const{
 	return renderIndex;
 }
 
-const Set *SetSequence::getBuffer() const{
-	return &buffer;
+const Set &SetSequence::getBuffer() const{
+	return buffer;
 }
 
 bool SetSequence::bufferInstant(temporal::val time){
@@ -212,13 +264,6 @@ bool SetSequence::bufferCurrent(){
 	return true;
 }
 
-void SetSequence::add(temporal::val time){
-	TimedSet *newTimedSet = new TimedSet(time);
-	renderers::sets::init(renderIndex,*newTimedSet);
-	
-	sets.insert(find(time),newTimedSet);
-}
-
 void SetSequence::select(temporal::val time){
 	std::list<TimedSet *>::iterator lastSelected = selected;
 	std::list<TimedSet *>::iterator it = find(time);
@@ -242,6 +287,34 @@ void SetSequence::deselect(){
 
 Set *SetSequence::current() const{
 	return selected == sets.end() ? NULL : *selected;
+}
+
+Transition SetSequence::getTransition(unsigned int i) const{
+	if(selected == sets.end()){
+		return TRANSITION_COUNT;
+	}
+	
+	return (*selected)->getTransition(i);
+}
+
+void SetSequence::setTransition(unsigned int i,Transition newTransition){
+	if(selected == sets.end()){
+		return;
+	}
+	
+	(*selected)->setTransition(i,newTransition);
+}
+
+void SetSequence::add(temporal::val time){
+	sets.insert(find(time),(TimedSet *)&renderers::sets::init(renderIndex,*(new TimedSet(time))));
+}
+
+void SetSequence::duplicate(temporal::val time){
+	if(selected == sets.end()){
+		return;
+	}
+	
+	sets.insert(find(time),&((new TimedSet(time))->copyFrom(**selected).setTime(time)));
 }
 
 void SetSequence::remove(){

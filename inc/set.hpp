@@ -19,10 +19,10 @@
 			Set(FILE *in);
 			void write(FILE *out) const;
 			
-			Set *copyFrom(const Set &s);
+			Set &copyFrom(const Set &s);
 			
 			float get(unsigned int i) const;
-			Set *set(unsigned int i,float newVal);
+			Set &set(unsigned int i,float newVal);
 	};
 	
 	#define SET_INCLUDED

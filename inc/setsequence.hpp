@@ -21,6 +21,7 @@
 		TRANSITION_COUNT
 	};
 	
+	const char *labelTransition(Transition t);
 	float interpolate(Transition t,float x);
 	
 	class SetSequence{
@@ -35,14 +36,16 @@
 					TimedSet(FILE *in);
 					void write(FILE *out) const;
 					
+					TimedSet &copyFrom(const TimedSet &t);
+					
 					temporal::val getTime() const;
-					TimedSet *setTime(temporal::val newTime);
+					TimedSet &setTime(temporal::val newTime);
 					
 					float get(unsigned int i) const;
-					TimedSet *set(unsigned int i,float newVal);
+					TimedSet &set(unsigned int i,float newVal);
 					
 					Transition getTransition(unsigned int i) const;
-					TimedSet *setTransition(unsigned int i,Transition newTransition);
+					TimedSet &setTransition(unsigned int i,Transition newTransition);
 			};
 			
 			unsigned int renderIndex;
@@ -62,16 +65,25 @@
 			~SetSequence();
 			
 			unsigned int getRenderIndex() const;
-			const Set *getBuffer() const;
+			const Set &getBuffer() const;
 			
 			bool bufferInstant(temporal::val time);
 			bool bufferCurrent();
 			
-			void add(temporal::val time);
+			
 			
 			void select(temporal::val time);
 			void deselect();
+			
 			Set *current() const;
+			
+			Transition getTransition(unsigned int i) const;
+			void setTransition(unsigned int i,Transition newTransition);
+			
+			
+			
+			void add(temporal::val time);
+			void duplicate(temporal::val time);
 			
 			void remove();
 			void move(temporal::val newTime);

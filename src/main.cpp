@@ -198,6 +198,7 @@ int main(){
 		
 		if(anim.seqCurrent() != NULL){
 			render::UI::labels::drawSetParameter(anim.seqCurrent()->getRenderIndex(),currentProperty);
+			render::UI::labels::drawTransition(anim.seqCurrent()->getTransition(currentProperty));
 		}
 		
 		window.display();
@@ -226,14 +227,30 @@ int main(){
 						case sf::Event::KeyPressed:
 							switch(event.key.code){
 								case sf::Keyboard::Up:
-									if(currentProperty + 1 < SET_SIZE){
-										++currentProperty;
+									if(isShiftDown){
+										if(anim.seqCurrent() != NULL){
+											Transition newTransition = (Transition)((TRANSITION_COUNT + anim.seqCurrent()->getTransition(currentProperty) + 1) % TRANSITION_COUNT);
+											
+											anim.seqCurrent()->setTransition(currentProperty,newTransition);
+										}
+									}else{
+										if(currentProperty + 1 < SET_SIZE){
+											++currentProperty;
+										}
 									}
 									
 									break;
 								case sf::Keyboard::Down:
-									if(currentProperty > 0){
-										--currentProperty;
+									if(isShiftDown){
+										if(anim.seqCurrent() != NULL){
+											Transition newTransition = (Transition)((TRANSITION_COUNT + anim.seqCurrent()->getTransition(currentProperty) - 1) % TRANSITION_COUNT);
+											
+											anim.seqCurrent()->setTransition(currentProperty,newTransition);
+										}
+									}else{
+										if(currentProperty > 0){
+											--currentProperty;
+										}
 									}
 									
 									break;
@@ -318,6 +335,9 @@ int main(){
 												
 											}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
 												anim.seqCurrent()->move(seqTime);
+												
+											}else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
+												anim.seqCurrent()->duplicate(seqTime);
 												
 											}else{
 												anim.seqCurrent()->select(seqTime);

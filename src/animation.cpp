@@ -239,7 +239,7 @@ bool stillCurrentSeqFrame;
 
 void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
 	if((isCurrent && stillCurrentSeqFrame && s->bufferCurrent()) || s->bufferInstant(seqTime)){
-		renderFunctions[s->getRenderIndex()](*(s->getBuffer()),renderTime);
+		renderFunctions[s->getRenderIndex()](s->getBuffer(),renderTime);
 	}
 }
 

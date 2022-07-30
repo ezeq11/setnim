@@ -2,6 +2,7 @@
 	#include <SFML/Graphics.hpp>
 	
 	#include "types.hpp"
+	#include "setsequence.hpp"
 	
 	namespace render{
 		bool init(sf::RenderWindow &renderWindow,const sf::Vector2u &innerDimensions,const char *fontFile);
@@ -58,6 +59,7 @@
 				
 				// Bottom UI
 				void drawSetParameter(unsigned int renderer,unsigned int property);
+				void drawTransition(Transition t);
 			}
 		}
 		
