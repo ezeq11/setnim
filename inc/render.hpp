@@ -52,8 +52,8 @@
 			
 			namespace labels{
 				// Top UI
-				void drawTime(temporal::val time,unsigned int minLen,char background);
-				void drawTime(const char *buffer,unsigned int minLen,char background);
+				void drawTime(frames::val time,unsigned int minLen,char background);
+				void drawTime(const char *str,unsigned int minLen,char background);
 				
 				void drawRenderers(unsigned int currentRenderer);
 				

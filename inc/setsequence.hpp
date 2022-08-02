@@ -28,18 +28,18 @@
 		private:
 			class TimedSet: public Set{
 				private:
-					temporal::val time;
+					normalizedUInt16::val time;
 					Transition transitions[SET_SIZE];
 					
 				public:
-					TimedSet(temporal::val newTime);
+					TimedSet(normalizedUInt16::val newTime);
 					TimedSet(FILE *in);
 					void write(FILE *out) const;
 					
 					TimedSet &copyFrom(const TimedSet &t);
 					
-					temporal::val getTime() const;
-					TimedSet &setTime(temporal::val newTime);
+					normalizedUInt16::val getTime() const;
+					TimedSet &setTime(normalizedUInt16::val newTime);
 					
 					float get(unsigned int i) const;
 					TimedSet &set(unsigned int i,float newVal);
@@ -54,8 +54,8 @@
 			std::list<TimedSet *> sets;
 			std::list<TimedSet *>::iterator selected;
 			
-			std::list<TimedSet *>::iterator find(temporal::val time);
-			std::list<TimedSet *>::const_iterator find(temporal::val time) const;
+			std::list<TimedSet *>::iterator find(normalizedUInt16::val time);
+			std::list<TimedSet *>::const_iterator find(normalizedUInt16::val time) const;
 			
 		public:
 			SetSequence(unsigned int newRenderIndex);
@@ -67,12 +67,12 @@
 			unsigned int getRenderIndex() const;
 			const Set &getBuffer() const;
 			
-			bool bufferInstant(temporal::val time);
+			bool bufferInstant(normalizedUInt16::val time);
 			bool bufferCurrent();
 			
 			
 			
-			void select(temporal::val time);
+			void select(normalizedUInt16::val time);
 			void deselect();
 			
 			Set *current() const;
@@ -82,13 +82,13 @@
 			
 			
 			
-			void add(temporal::val time);
-			void duplicate(temporal::val time);
+			void add(normalizedUInt16::val time);
+			void duplicate(normalizedUInt16::val time);
 			
 			void remove();
-			void move(temporal::val newTime);
+			void move(normalizedUInt16::val newTime);
 			
-			void drawMarkers(temporal::val begin,temporal::val end) const;
+			void drawMarkers(normalizedUInt16::val begin,normalizedUInt16::val end) const;
 	};
 	
 	#define SEQUENCE_INCLUDED

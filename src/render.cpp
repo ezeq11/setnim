@@ -316,35 +316,43 @@ namespace render{
 		
 		namespace labels{
 			// Top UI -------------------------
-			void drawTime(temporal::val time,unsigned int minLen,char background){
-				textBuffer[0] = '\0';
-				temporal::str::appendDigits(textBuffer,time);
-				
-				drawTime(textBuffer,minLen,background);
-			}
-			
-			void drawTime(const char *buffer,unsigned int minLen,char background){
+			void padBuffer(const char *str,unsigned int minLen,char background){
 				// Ensure minimum length
-				unsigned int len = strlen(buffer);
+				unsigned int len = strlen(str);
 				minLen = len > minLen ? len : minLen;
 				
 				// Move to minimum length
-				memmove(textBuffer + (minLen - len),buffer,len + 1);
+				memmove(textBuffer + (minLen - len),str,len + 1);
 				
 				// Pad beginning with background
 				for(unsigned int i = 0;i < (minLen - len);++i){
 					textBuffer[i] = background;
 				}
-				
-				// Format
-				temporal::str::punctuate(textBuffer);
-				temporal::str::appendUnit(textBuffer);
-				
-				// Draw
+			}
+			
+			void drawTimeBuffer(){
 				sf::Text display(std::string(textBuffer),font,TEXT_SIZE);
 				display.setPosition(TIME_DISPLAY_X_MARGIN,TIME_DISPLAY_TOP + TIME_DISPLAY_Y_MARGIN);
 				
 				window->draw(display);
+			}
+			
+			void drawTime(frames::val time,unsigned int minLen,char background){
+				textBuffer[0] = '\0';
+				frames::str::appendFrames(textBuffer,time);
+				
+				padBuffer(textBuffer,minLen,background);
+				drawTimeBuffer();
+			}
+			
+			void drawTime(const char *str,unsigned int minLen,char background){
+				padBuffer(str,minLen,background);
+				
+				unsigned int len = strlen(textBuffer);
+				textBuffer[len + 0] = 'f';
+				textBuffer[len + 1] = '\0';
+				
+				drawTimeBuffer();
 			}
 			
 			void drawRenderers(unsigned int currentRenderer){

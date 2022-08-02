@@ -1,13 +1,13 @@
 #include "animation.hpp"
 #include "render.hpp"
 
-Scene::Scene(temporal::val newLength)
+Scene::Scene(frames::val newLength)
 :length(newLength){
 	
 }
 
 Scene::Scene(FILE *in)
-:length(temporal::read(in)){
+:length(frames::read(in)){
 	unsigned int seqCount = uInt32::read(in);
 	
 	for(unsigned int i = 0;i < seqCount;++i){
@@ -29,17 +29,17 @@ void writeSeq(SetSequence *s,unsigned int i,bool isCurrent){
 void Scene::write(FILE *out) const{
 	fileIO = out;
 	
-	temporal::write(out,length);
+	frames::write(out,length);
 	
 	uInt32::write(out,(uint32_t)PointerIterable<SetSequence>::length());
 	forAll(&writeSeq);
 }
 
-temporal::val Scene::getLength() const{
+frames::val Scene::getLength() const{
 	return length;
 }
 
-void Scene::setLength(temporal::val newLength){
+void Scene::setLength(frames::val newLength){
 	length = newLength;
 }
 
@@ -76,11 +76,11 @@ void Animation::write(FILE *out) const{
 
 // ------------------------------------------------------------------------------------
 
-void Animation::sceneAddBefore(temporal::val length){
+void Animation::sceneAddBefore(frames::val length){
 	scenes.addBefore(new Scene(length));
 }
 
-void Animation::sceneAddAfter(temporal::val length){
+void Animation::sceneAddAfter(frames::val length){
 	scenes.addAfter(new Scene(length));
 }
 
@@ -104,7 +104,7 @@ bool Animation::sceneAvailable() const{
 	return scenes.current() != NULL;
 }
 
-temporal::val Animation::sceneGetLength() const{
+frames::val Animation::sceneGetLength() const{
 	if(scenes.current() == NULL){
 		return 0;
 	}
@@ -112,7 +112,7 @@ temporal::val Animation::sceneGetLength() const{
 	return scenes.current()->getLength();
 }
 
-void Animation::sceneSetLength(temporal::val newLength){
+void Animation::sceneSetLength(frames::val newLength){
 	if(scenes.current() == NULL){
 		return;
 	}
@@ -122,13 +122,13 @@ void Animation::sceneSetLength(temporal::val newLength){
 
 // -------------------------------
 
-temporal::val totalTime;
+frames::val totalTime;
 
 void sceneSumTime(Scene *s,unsigned int i,bool isCurrent){
 	totalTime += s->getLength();
 }
 
-temporal::val Animation::length() const{
+frames::val Animation::length() const{
 	totalTime = 0;
 	scenes.forAll(&sceneSumTime);
 	
@@ -195,15 +195,15 @@ SetSequence *Animation::seqCurrent() const{
 
 // ------------------------------------------------------------------------------------
 
-int currentMarkerPos;
-
-temporal::val tallyTime,completeTime;
+frames::val tallyTime,completeTime;
 unsigned int sceneCount;
+
+int currentMarkerPos;
 
 void drawSceneMarker(Scene *s,unsigned int i,bool isCurrent){
 	render::UI::markers::drawScene(
-		temporal::toFloat(tallyTime) / temporal::toFloat(completeTime),
-		temporal::toFloat(tallyTime + s->getLength()) / temporal::toFloat(completeTime),
+		frames::toFloat(tallyTime) / frames::toFloat(completeTime),
+		frames::toFloat(tallyTime + s->getLength()) / frames::toFloat(completeTime),
 		isCurrent,
 		i + 1 != sceneCount
 	);
@@ -234,33 +234,32 @@ void Animation::drawMarkers() const{
 
 void (**renderFunctions)(const Set &,float);
 
-float renderTime;
-temporal::val currentFrame,seqTime;
+frames::val renderTime;
+normalizedUInt16::val seqTime;
 
 bool stillCurrentSeqFrame;
 
 void drawSeqFrame(SetSequence *s,unsigned int i,bool isCurrent){
 	if((isCurrent && stillCurrentSeqFrame && s->bufferCurrent()) || s->bufferInstant(seqTime)){
-		renderFunctions[s->getRenderIndex()](s->getBuffer(),renderTime);
+		renderFunctions[s->getRenderIndex()](s->getBuffer(),frames::toFloat(renderTime));
 	}
 }
 
 void drawScene(Scene *s,unsigned int i,bool isCurrent){
-	if(currentFrame >= tallyTime && (currentFrame < tallyTime + s->getLength() || (currentFrame == completeTime && completeTime == tallyTime + s->getLength()))){
-		seqTime = currentFrame - tallyTime;
+	if(renderTime >= tallyTime && (renderTime < tallyTime + s->getLength() || (renderTime == completeTime && completeTime == tallyTime + s->getLength()))){
+		seqTime = normalizedUInt16::fromFloat(frames::toFloat(renderTime - tallyTime) / frames::toFloat(s->getLength()));
 		s->forAll(&drawSeqFrame);
-		
-		tallyTime += s->getLength();
 	}
+	
+	tallyTime += s->getLength();
 }
 
-void Animation::render(void (**renderers)(const Set &,float),float time,bool stillActiveFrame) const{
+void Animation::render(void (**renderers)(const Set &,float),frames::val time,bool stillActiveFrame) const{
 	renderFunctions = renderers;
 	
 	tallyTime = 0;
 	completeTime = length();
 	renderTime = time;
-	currentFrame = temporal::fromFloat(time);
 	
 	stillCurrentSeqFrame = stillActiveFrame;
 	

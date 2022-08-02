@@ -12,8 +12,9 @@
 		uint16_t read(FILE *in);
 	}
 	
-	namespace temporal{
+	namespace frames{
 		typedef uint32_t val;
+		extern unsigned int perSec;
 		
 		float toFloat(val v);
 		val fromFloat(float v);
@@ -22,10 +23,19 @@
 		val read(FILE *in);
 		
 		namespace str{
-			void appendDigits(char *str,val v);
-			void punctuate(char *str);
-			void appendUnit(char *str);
+			void appendFrames(char *str,val v);
+			void appendSecondsFrames(char *str,val v);
 		}
+	}
+	
+	namespace normalizedUInt16{
+		typedef uint16_t val;
+		
+		float toFloat(val v);
+		val fromFloat(float v);
+		
+		void write(FILE *out,val v);
+		val read(FILE *in);
 	}
 	
 	namespace normalizedInt16{

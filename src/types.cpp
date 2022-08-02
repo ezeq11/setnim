@@ -40,13 +40,15 @@ namespace uInt16{
 	}
 }
 
-namespace temporal{
+namespace frames{
+	unsigned int perSec = 120;
+	
 	float toFloat(val v){
-		return (float)v / 10000;
+		return (float)v / perSec;
 	}
 	
 	val fromFloat(float v){
-		return v * 10000;
+		return v * perSec;
 	}
 	
 	void write(FILE *out,val v){
@@ -58,27 +60,31 @@ namespace temporal{
 	}
 	
 	namespace str{
-		void appendDigits(char *str,val v){
-			sprintf(str + strlen(str),"%05u",v);
+		void appendFrames(char *str,val v){
+			sprintf(str + strlen(str),"%uf",v);
 		}
 		
-		void punctuate(char *str){
-			unsigned int len = strlen(str);
-			
-			str[len + 1] = '\0';
-			str[len + 0] = str[len - 1]; // ten-thousandths
-			str[len - 1] = str[len - 2]; // thousandths
-			str[len - 2] = str[len - 3]; // hundredths
-			str[len - 3] = str[len - 4]; // tens
-			str[len - 4] = '.';
+		void appendSecondsFrames(char *str,val v){
+			sprintf(str + strlen(str),"%us %03uf",v / perSec,v % perSec);
 		}
-		
-		void appendUnit(char *str){
-			unsigned int len = strlen(str);
-			
-			str[len + 1] = '\0';
-			str[len + 0] = 's';
-		}
+	}
+}
+
+namespace normalizedUInt16{
+	float toFloat(val v){
+		return (double)v / (double)UINT16_MAX;
+	}
+	
+	val fromFloat(float v){
+		return (double)v * (double)UINT16_MAX;
+	}
+	
+	void write(FILE *out,val v){
+		uInt16::write(out,v);
+	}
+	
+	val read(FILE *in){
+		return uInt16::read(in);
 	}
 }
 

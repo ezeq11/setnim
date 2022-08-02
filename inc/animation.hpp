@@ -4,15 +4,15 @@
 	
 	class Scene: public PointerIterable<SetSequence>{
 		private:
-			temporal::val length;
+			frames::val length;
 			
 		public:
-			Scene(temporal::val newLength);
+			Scene(frames::val newLength);
 			Scene(FILE *in);
 			void write(FILE *out) const;
 			
-			temporal::val getLength() const;
-			void setLength(temporal::val newLength);
+			frames::val getLength() const;
+			void setLength(frames::val newLength);
 	};
 	
 	class Animation{
@@ -26,18 +26,18 @@
 			
 			
 			
-			void sceneAddBefore(temporal::val length);
-			void sceneAddAfter(temporal::val length);
+			void sceneAddBefore(frames::val length);
+			void sceneAddAfter(frames::val length);
 			void sceneForward();
 			void sceneBackward();
 			void sceneRemove();
 			void sceneClear();
 			
 			bool sceneAvailable() const;
-			temporal::val sceneGetLength() const;
-			void sceneSetLength(temporal::val newLength);
+			frames::val sceneGetLength() const;
+			void sceneSetLength(frames::val newLength);
 			
-			temporal::val length() const;
+			frames::val length() const;
 			
 			
 			
@@ -53,7 +53,7 @@
 			
 			
 			void drawMarkers() const;
-			void render(void (**renderers)(const Set &,float),float time,bool stillActiveFrame) const;
+			void render(void (**renderers)(const Set &,float),frames::val time,bool stillActiveFrame) const;
 	};
 	
 	#define ANIMATION_INCLUDED

@@ -23,7 +23,7 @@
 #define WINDOW_SCREEN_HEIGHT_RATIO 0.6
 #define WINDOW_SCREEN_WIDTH_RATIO 0.8
 
-#define TIME_DISPLAY_LENGTH 8
+#define TIME_DISPLAY_LENGTH 6
 
 enum InputState{
 	INPUT_DEFAULT,
@@ -46,8 +46,16 @@ enum InputState{
 	INPUT_COUNT
 };
 
-temporal::val normalizedFloatToSceneTime(float v,temporal::val sceneLen){
-	return temporal::fromFloat(v * temporal::toFloat(sceneLen));
+bool inputStateHasLiveDisplay(InputState state){
+	switch(state){
+		case INPUT_PLAY:
+			return true;
+			
+		default:
+			break;
+	}
+	
+	return false;
 }
 
 bool timeInputAllowable(char c){
@@ -103,8 +111,8 @@ int main(){
 	
 	unsigned int currentRenderer = 0;
 	unsigned int currentProperty = 0;
-	float currentTime = 0.0;
-	float playTime;
+	float beginTime = 0.0;
+	float currentTime;
 	
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
 	TextInput<128,&commandLineAllowable> commandLineInput;
@@ -113,11 +121,13 @@ int main(){
 	Animation *anim = NULL;
 	
 	while(window.isOpen() && run){
+		sf::Clock frameClock;
+		
 		render::UI::updateCursorPos(sf::Mouse::getPosition(window).x,sf::Mouse::getPosition(window).y);
 		
 		if(anim != NULL){
-			playTime = currentTime + clock.getElapsedTime().asSeconds();
-			playTime = playTime > temporal::toFloat(anim->length()) ? temporal::toFloat(anim->length()) : playTime;
+			currentTime = beginTime + clock.getElapsedTime().asSeconds();
+			currentTime = currentTime > frames::toFloat(anim->length()) ? frames::toFloat(anim->length()) : currentTime;
 		}
 		
 		// Drawing ---------------------------------------
@@ -125,15 +135,10 @@ int main(){
 		render::view::clear();
 		
 		if(anim != NULL){
-			switch(inputState){
-				case INPUT_PLAY:
-					anim->render(renderers::get(),playTime,false);
-					
-					break;
-				default:
-					anim->render(renderers::get(),currentTime,true);
-					
-					break;
+			if(inputStateHasLiveDisplay(inputState)){
+				anim->render(renderers::get(),frames::fromFloat(currentTime),false);
+			}else{
+				anim->render(renderers::get(),frames::fromFloat(beginTime),true);
 			}
 		}
 		
@@ -146,8 +151,8 @@ int main(){
 			anim->drawMarkers();
 			
 			if(anim->sceneAvailable()){
-				float playBegin = currentTime / temporal::toFloat(anim->length());
-				float playEnd = playTime / temporal::toFloat(anim->length());
+				float playBegin = beginTime / frames::toFloat(anim->length());
+				float playEnd = currentTime / frames::toFloat(anim->length());
 				
 				if(inputState == INPUT_PLAY){
 					render::UI::markers::drawScenesPlayTime(playBegin,playEnd);
@@ -157,7 +162,7 @@ int main(){
 			}
 			
 			if(anim->seqCurrent() != NULL){
-				anim->seqCurrent()->drawMarkers(normalizedFloatToSceneTime(timeView::getBegin(),anim->sceneGetLength()),normalizedFloatToSceneTime(timeView::getEnd(),anim->sceneGetLength()));
+				anim->seqCurrent()->drawMarkers(normalizedUInt16::fromFloat(timeView::getBegin()),normalizedUInt16::fromFloat(timeView::getEnd()));
 				
 				if(render::UI::bars::insideSeqFrames()){
 					render::UI::markers::drawSeqFrame(render::UI::markers::SEQ_FRAME_CURSOR,render::UI::bars::cursorValSeqFrames());
@@ -418,11 +423,11 @@ int main(){
 								case sf::Mouse::Left:
 									if(render::UI::bars::insideScenes()){
 										if(anim->sceneAvailable()){
-											currentTime = render::UI::bars::cursorValScenes() * temporal::toFloat(anim->length());
+											beginTime = render::UI::bars::cursorValScenes() * frames::toFloat(anim->length());
 										}
 									}else if(render::UI::bars::insideSeqFrames()){
 										if(anim->seqCurrent() != NULL){
-											temporal::val seqTime = normalizedFloatToSceneTime(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()),anim->sceneGetLength());
+											normalizedUInt16::val seqTime = normalizedUInt16::fromFloat(timeView::getBegin() + render::UI::bars::cursorValSeqFrames() * (timeView::getEnd() - timeView::getBegin()));
 											
 											if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
 												anim->seqCurrent()->add(seqTime);
@@ -592,7 +597,7 @@ int main(){
 					break;
 				case INPUT_READ_FILE_ACKNOWLEDGE:
 				case INPUT_WRITE_FILE_ACKNOWLEDGE:
-					if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter){
+					if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space){
 						commandLineInput.clear();
 						inputState = INPUT_DEFAULT;
 					}
@@ -602,6 +607,12 @@ int main(){
 				default:
 					break;
 			}
+		}
+		
+		float frameTime = frameClock.getElapsedTime().asSeconds();
+		
+		if(inputStateHasLiveDisplay(inputState) && frameTime < 1.0 / frames::perSec){
+			sf::sleep(sf::seconds(1.0 / frames::perSec - frameTime));
 		}
 	}
 	
