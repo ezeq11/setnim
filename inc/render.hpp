@@ -73,6 +73,8 @@
 			void drawTemp(const sf::Transform &transform);
 			void drawBounds();
 			
+			bool writeTo(const char *out);
+			
 			namespace temp{
 				void clear();
 				

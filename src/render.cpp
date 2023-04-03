@@ -428,6 +428,10 @@ namespace render{
 			draw(viewBounds,sf::Transform::Identity);
 		}
 		
+		bool writeTo(const char *out){
+			return view.getTexture().copyToImage().saveToFile(std::string(out));
+		}
+		
 		namespace temp{
 			void clear(){
 				viewTemp.clear(sf::Color(0,0,0,0));

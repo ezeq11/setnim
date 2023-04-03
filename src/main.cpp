@@ -25,6 +25,8 @@
 
 #define TIME_DISPLAY_LENGTH 6
 
+#define RENDER_FPS 60
+
 enum InputState{
 	INPUT_DEFAULT,
 	
@@ -43,12 +45,15 @@ enum InputState{
 	INPUT_WRITE_FILE_ENTER,
 	INPUT_WRITE_FILE_ACKNOWLEDGE,
 	
+	INPUT_RENDER,
+	
 	INPUT_COUNT
 };
 
 bool inputStateHasLiveDisplay(InputState state){
 	switch(state){
 		case INPUT_PLAY:
+		case INPUT_RENDER:
 			return true;
 			
 		default:
@@ -113,9 +118,11 @@ int main(){
 	unsigned int currentProperty = 0;
 	float beginTime = 0.0;
 	float currentTime;
+	unsigned int currentFrame;
 	
 	TextInput<TIME_DISPLAY_LENGTH,&timeInputAllowable> timeInput;
 	TextInput<128,&commandLineAllowable> commandLineInput;
+	char pathTemp[128];
 	bool successfulIO;
 	
 	Animation *anim = NULL;
@@ -135,10 +142,19 @@ int main(){
 		render::view::clear();
 		
 		if(anim != NULL){
-			if(inputStateHasLiveDisplay(inputState)){
-				anim->render(renderers::get(),frames::fromFloat(currentTime),false);
-			}else{
-				anim->render(renderers::get(),frames::fromFloat(beginTime),true);
+			switch(inputState){
+				case INPUT_PLAY:
+					anim->render(renderers::get(),frames::fromFloat(currentTime),false);
+					
+					break;
+				case INPUT_RENDER:
+					anim->render(renderers::get(),currentFrame,false);
+					
+					break;
+				default:
+					anim->render(renderers::get(),frames::fromFloat(beginTime),true);
+					
+					break;
 			}
 		}
 		
@@ -255,7 +271,18 @@ int main(){
 		window.display();
 		
 		// Event Handling --------------------------------
-		if(window.pollEvent(event) || (inputState != INPUT_PLAY && window.waitEvent(event))){
+		if(inputState == INPUT_RENDER){
+			sprintf(pathTemp,"render/%u.png",currentFrame);
+			render::view::writeTo(pathTemp);
+			
+			if(currentFrame >= anim->length()){
+				inputState = INPUT_DEFAULT;
+			}else{
+				currentFrame += frames::perSec / RENDER_FPS;
+			}
+		}
+		
+		if(window.pollEvent(event) || (!inputStateHasLiveDisplay(inputState) && window.waitEvent(event))){
 			isCtrlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
 			isShiftDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 			
@@ -390,6 +417,13 @@ int main(){
 										if(anim->seqCurrent() != NULL){
 											anim->seqCurrent()->remove();
 										}
+									}
+									
+									break;
+								case sf::Keyboard::R:
+									if(isCtrlDown){
+										inputState = INPUT_RENDER;
+										currentFrame = 0;
 									}
 									
 									break;
