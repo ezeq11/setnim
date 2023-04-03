@@ -1,6 +1,6 @@
 # Setnim
 
-An animation framework for parameterized puppets.  
+An animation framework for parameterized puppets programmable in OpenGL.  
 Made with SFML.  
 
 ![&lt;animation of an un-shrinking person&gt;](demo/ant_man.gif)  
@@ -19,12 +19,12 @@ The advantage of this approach is that the render methods for each puppet would 
 It wouldn't even need to a puppet! A simple rising-sun background could consist of a single "y-position" parameter, and that would be a valid puppet, even if it was just a parameter for a single-quad shader applied to the whole screen.  
   
 Furthermore, integration with the models output by [mesher](https://github.com/zeqe/mesher) could be achieved, to allow smooth animatable meshes and particle fields!  
-Swaying fields of grass have never been so cheap :)
+Swaying fields of grass have never been so cheap :)  
 
 ## Project State
 
 Unfortunately, this project is currently abandoned.  
-Due to a shift in ambitions, it is unlikely to ever be re-visited.
+Due to a shift in ambitions, it is unlikely to ever be re-visited.  
 
 ## Footnotes
 
